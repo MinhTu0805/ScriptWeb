@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🎙️ VoiceShift Pro — Chỉnh Giọng Thông Minh Cho Streamer</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  :root {
+    --bg:#0a0a14; --card:rgba(255,255,255,.05); --border:rgba(255,255,255,.1);
+    --accent:#8b5cf6; --accent2:#06b6d4; --pink:#ec4899; --text:#e5e7eb; --muted:#9ca3af;
+  }
+  body {
+    font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
+    background:var(--bg); color:var(--text); min-height:100vh; overflow-x:hidden;
+  }
+  /* Animated background */
+  .bg-orbs { position:fixed; inset:0; z-index:-1; overflow:hidden; }
+  .orb { position:absolute; border-radius:50%; filter:blur(90px); opacity:.35; animation:float 14s ease-in-out infinite; }
+  .orb1 { width:420px;height:420px; background:#7c3aed; top:-120px; left:-100px; }
+  .orb2 { width:380px;height:380px; background:#0891b2; bottom:-100px; right:-80px; animation-delay:-5s; }
+  .orb3 { width:280px;height:280px; background:#db2777; top:40%; left:55%; animation-delay:-9s; }
+  @keyframes float { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(40px,-40px) scale(1.12)} }
+
+  header {
+    text-align:center; padding:28px 16px 10px;
+  }
+  header h1 {
+    font-size:clamp(1.5rem,4vw,2.4rem); font-weight:800;
+    background:linear-gradient(90deg,#a78bfa,#22d3ee,#f472b6);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  header p { color:var(--muted); margin-top:6px; font-size:.95rem; }
+  .live-badge {
+    display:inline-flex; align-items:center; gap:6px; margin-top:10px;
+    padding:5px 14px; border-radius:999px; font-size:.78rem; font-weight:600;
+    background:rgba(239,68,68,.15); color:#fca5a5; border:1px solid rgba(239,68,68,.35);
+  }
+  .live-dot { width:8px;height:8px;border-radius:50%;background:#ef4444; animation:pulse 1.2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+  .container { max-width:1100px; margin:0 auto; padding:16px; display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  @media (max-width:820px){ .container{ grid-template-columns:1fr; } }
+
+  .card {
+    background:var(--card); border:1px solid var(--border); border-radius:20px;
+    padding:20px; backdrop-filter:blur(14px); box-shadow:0 8px 32px rgba(0,0,0,.35);
+  }
+  .card h2 { font-size:1rem; font-weight:700; margin-bottom:14px; display:flex; align-items:center; gap:8px; }
+  .full { grid-column:1/-1; }
+
+  /* Mic control */
+  .mic-panel { text-align:center; }
+  .mic-btn {
+    width:110px;height:110px;border-radius:50%; border:none; cursor:pointer;
+    background:linear-gradient(135deg,#8b5cf6,#06b6d4); color:#fff; font-size:2.4rem;
+    box-shadow:0 0 0 0 rgba(139,92,246,.5); transition:transform .15s, box-shadow .3s;
+  }
+  .mic-btn:hover { transform:scale(1.06); }
+  .mic-btn.active {
+    background:linear-gradient(135deg,#ef4444,#ec4899);
+    animation:micpulse 1.6s infinite;
+  }
+  @keyframes micpulse { 0%{box-shadow:0 0 0 0 rgba(239,68,68,.5)} 70%{box-shadow:0 0 0 26px rgba(239,68,68,0)} 100%{box-shadow:0 0 0 0 rgba(239,68,68,0)} }
+  .mic-status { margin-top:12px; font-size:.88rem; color:var(--muted); }
+  .mic-status.on { color:#4ade80; font-weight:600; }
+
+  canvas#viz { width:100%; height:90px; border-radius:12px; background:rgba(0,0,0,.35); margin-top:14px; }
+  .meter-wrap { margin-top:10px; height:10px; border-radius:99px; background:rgba(255,255,255,.08); overflow:hidden; }
+  .meter { height:100%; width:0%; border-radius:99px; background:linear-gradient(90deg,#22d3ee,#a78bfa,#f472b6); transition:width .06s linear; }
+
+  /* Presets */
+  .presets { display:grid; grid-template-columns:repeat(auto-fill,minmax(105px,1fr)); gap:10px; }
+  .preset {
+    padding:14px 8px; border-radius:14px; border:1px solid var(--border); cursor:pointer;
+    background:rgba(255,255,255,.04); text-align:center; transition:all .18s; user-select:none;
+  }
+  .preset:hover { transform:translateY(-3px); border-color:var(--accent); }
+  .preset.active {
+    background:linear-gradient(135deg,rgba(139,92,246,.35),rgba(6,182,212,.3));
+    border-color:var(--accent); box-shadow:0 0 18px rgba(139,92,246,.35);
+  }
+  .preset .ico { font-size:1.7rem; }
+  .preset .name { font-size:.8rem; font-weight:600; margin-top:6px; }
+
+  /* Sliders */
+  .slider-row { margin-bottom:14px; }
+  .slider-row label { display:flex; justify-content:space-between; font-size:.82rem; color:var(--muted); margin-bottom:6px; }
+  .slider-row label b { color:var(--text); font-variant-numeric:tabular-nums; }
+  input[type=range] {
+    width:100%; -webkit-appearance:none; appearance:none; height:6px; border-radius:99px;
+    background:linear-gradient(90deg,var(--accent) var(--fill,50%), rgba(255,255,255,.12) var(--fill,50%));
+    outline:none; cursor:pointer;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance:none; width:18px;height:18px;border-radius:50%;
+    background:#fff; border:3px solid var(--accent); box-shadow:0 0 10px rgba(139,92,246,.6);
+  }
+  input[type=range]::-moz-range-thumb { width:16px;height:16px;border-radius:50%; background:#fff; border:3px solid var(--accent); }
+
+  select {
+    width:100%; padding:10px 12px; border-radius:12px; background:rgba(0,0,0,.4);
+    color:var(--text); border:1px solid var(--border); font-size:.85rem; margin-bottom:10px; outline:none;
+  }
+  .toggle-row { display:flex; align-items:center; justify-content:space-between; padding:9px 0; font-size:.86rem; border-bottom:1px solid rgba(255,255,255,.06); }
+  .toggle-row:last-child { border-bottom:none; }
+  .switch { position:relative; width:44px; height:24px; flex-shrink:0; }
+  .switch input { opacity:0; width:0; height:0; }
+  .track { position:absolute; inset:0; border-radius:99px; background:rgba(255,255,255,.15); transition:.25s; cursor:pointer; }
+  .track::before { content:''; position:absolute; width:18px;height:18px;border-radius:50%; background:#fff; top:3px; left:3px; transition:.25s; }
+  .switch input:checked + .track { background:linear-gradient(90deg,var(--accent),var(--accent2)); }
+  .switch input:checked + .track::before { transform:translateX(20px); }
+
+  .guide { font-size:.85rem; line-height:1.7; color:var(--muted); }
+  .guide b { color:var(--text); }
+  .guide code { background:rgba(139,92,246,.2); padding:2px 7px; border-radius:6px; color:#c4b5fd; font-size:.8rem; }
+  .guide ol { padding-left:20px; margin-top:6px; }
+  .warn { margin-top:10px; padding:10px 14px; border-radius:12px; background:rgba(234,179,8,.1); border:1px solid rgba(234,179,8,.3); color:#fde68a; font-size:.8rem; }
+  footer { text-align:center; color:var(--muted); font-size:.78rem; padding:20px; }
+</style>
+</head>
+<body>
+<div class="bg-orbs"><div class="orb orb1"></div><div class="orb orb2"></div><div class="orb orb3"></div></div>
+
+<header>
+  <h1>🎙️ VoiceShift Pro</h1>
+  <p>Chỉnh giọng thông minh theo thời gian thực — tự nhiên, mượt mà, độ trễ cực thấp</p>
+  <div class="live-badge"><span class="live-dot"></span> SẴN SÀNG CHO LIVESTREAM</div>
+</header>
+
+<div class="container">
+
+  <!-- MIC + VISUALIZER -->
+  <div class="card mic-panel">
+    <h2>🎤 Microphone</h2>
+    <button class="mic-btn" id="micBtn">🎙️</button>
+    <div class="mic-status" id="micStatus">Nhấn để bật micro</div>
+    <canvas id="viz"></canvas>
+    <div class="meter-wrap"><div class="meter" id="meter"></div></div>
+  </div>
+
+  <!-- DEVICES -->
+  <div class="card">
+    <h2>🔌 Thiết bị & Đầu ra</h2>
+    <label style="font-size:.8rem;color:var(--muted)">🎙️ Nguồn micro</label>
+    <select id="inputSelect"><option>Mặc định</option></select>
+    <label style="font-size:.8rem;color:var(--muted)">🔊 Xuất âm thanh ra (chọn VB-Cable để stream)</label>
+    <select id="outputSelect"><option value="">Loa / Tai nghe mặc định</option></select>
+    <div class="toggle-row"><span>🎧 Nghe thử giọng của mình (Monitor)</span>
+      <label class="switch"><input type="checkbox" id="monitorToggle" checked><span class="track"></span></label></div>
+    <div class="toggle-row"><span>🧹 Khử nhiễu & triệt tiếng vang</span>
+      <label class="switch"><input type="checkbox" id="denoiseToggle" checked><span class="track"></span></label></div>
+    <div class="warn">⚠️ Đeo tai nghe khi bật Monitor để tránh hú/rè. Trang cần chạy trên HTTPS hoặc localhost.</div>
+  </div>
+
+  <!-- PRESETS -->
+  <div class="card full">
+    <h2>✨ Giọng có sẵn (nhấn để đổi ngay khi đang nói)</h2>
+    <div class="presets" id="presetGrid"></div>
+  </div>
+
+  <!-- FINE TUNE -->
+  <div class="card">
+    <h2>🎛️ Tinh chỉnh giọng</h2>
+    <div class="slider-row"><label>Cao độ (Pitch) <b id="vPitch">0 semitone</b></label>
+      <input type="range" id="sPitch" min="-12" max="12" step="0.5" value="0"></div>
+    <div class="slider-row"><label>Độ sáng giọng (Tone) <b id="vTone">100%</b></label>
+      <input type="range" id="sTone" min="20" max="100" value="100"></div>
+    <div class="slider-row"><label>🤖 Hiệu ứng Robot <b id="vRobot">0%</b></label>
+      <input type="range" id="sRobot" min="0" max="100" value="0"></div>
+    <div class="slider-row"><label>👾 Rung giọng (Vibrato) <b id="vVibrato">0%</b></label>
+      <input type="range" id="sVibrato" min="0" max="100" value="0"></div>
+    <div class="slider-row"><label>💥 Biến dạng (Distortion) <b id="vDist">0%</b></label>
+      <input type="range" id="sDist" min="0" max="100" value="0"></div>
+  </div>
+
+  <!-- SPACE -->
+  <div class="card">
+    <h2>🌌 Không gian & Âm lượng</h2>
+    <div class="slider-row"><label>🔁 Vang vọng (Echo) <b id="vEcho">0%</b></label>
+      <input type="range" id="sEcho" min="0" max="100" value="0"></div>
+    <div class="slider-row"><label>🏛️ Reverb (Phòng ảo) <b id="vReverb">0%</b></label>
+      <input type="range" id="sReverb" min="0" max="100" value="0"></div>
+    <div class="slider-row"><label>🔊 Âm lượng đầu ra <b id="vGain">100%</b></label>
+      <input type="range" id="sGain" min="0" max="200" value="100"></div>
+    <button id="resetBtn" style="width:100%;padding:11px;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,.06);color:var(--text);cursor:pointer;font-weight:600;margin-top:4px;">↺ Đặt lại mặc định</button>
+  </div>
+
+  <!-- STREAM GUIDE -->
+  <div class="card full">
+    <h2>📡 Hướng dẫn dùng khi Livestream (OBS / Discord / TikTok Live)</h2>
+    <div class="guide">
+      <b>Cách đưa giọng đã chỉnh vào stream:</b>
+      <ol>
+        <li>Tải & cài <code>VB-Audio Virtual Cable</code> (miễn phí) — tạo micro ảo trên máy tính.</li>
+        <li>Bật micro trên trang này → ở mục <b>"Xuất âm thanh ra"</b> chọn <code>CABLE Input (VB-Audio)</code>.</li>
+        <li>Trong OBS / Discord / phần mềm stream: chọn nguồn micro là <code>CABLE Output (VB-Audio)</code>.</li>
+        <li>Nói vào micro thật → giọng đã chỉnh sẽ phát thẳng vào stream theo thời gian thực! 🎉</li>
+      </ol>
+      <div class="warn">💡 Mẹo: Giọng "Con gái" / "Em bé" nghe tự nhiên nhất khi bạn nói nhẹ nhàng, không gằn giọng. Kết hợp thêm chút Reverb (10–20%) giúp giọng mượt và "thật" hơn.</div>
+    </div>
+  </div>
+</div>
+
+<footer>VoiceShift Pro • Xử lý 100% trên trình duyệt, không gửi dữ liệu âm thanh đi đâu 🔒</footer>
+
+<script>
+/* ============ AUDIO WORKLET: Pitch Shifter (granular, 2 đầu đọc crossfade) ============ */
+const workletCode = `
+class PitchShifter extends AudioWorkletProcessor {
+  constructor(){ super();
+    this.N = 8192; this.buf = new Float32Array(this.N);
+    this.w = 0; this.phase = 0; this.ratio = 1; this.grain = 2048;
+    this.port.onmessage = e => { this.ratio = Math.max(0.25, Math.min(4, e.data)); };
+  }
+  process(inputs, outputs){
+    const inp = inputs[0][0], out = outputs[0][0];
+    if(!inp) return true;
+    const N = this.N, g = this.grain;
+    for(let i=0;i<inp.length;i++){
+      this.buf[this.w] = inp[i];
+      this.phase += (1 - this.ratio) / g;
+      if(this.phase >= 1) this.phase -= 1;
+      if(this.phase < 0) this.phase += 1;
+      let o = 0;
+      for(let h=0; h<2; h++){
+        let ph = this.phase + h*0.5; if(ph>=1) ph-=1;
+        const delay = ph * g;
+        let rp = this.w - delay; if(rp<0) rp+=N;
+        const i0 = Math.floor(rp)%N, i1=(i0+1)%N, fr = rp-Math.floor(rp);
+        const s = this.buf[i0]*(1-fr) + this.buf[i1]*fr;
+        const win = 0.5 - 0.5*Math.cos(2*Math.PI*ph);
+        o += s*win;
+      }
+      out[i] = o;
+      this.w = (this.w+1)%N;
+    }
+    return true;
+  }
+}
+registerProcessor('pitch-shifter', PitchShifter);
+`;
+
+/* ============ STATE ============ */
+const P = { pitch:0, tone:100, robot:0, vibrato:0, dist:0, echo:0, reverb:0, gain:100 };
+const PRESETS = [
+  { name:'Giọng gốc', ico:'🙂', p:{pitch:0,  tone:100, robot:0,  vibrato:0,  dist:0,  echo:0,  reverb:0,  gain:100} },
+  { name:'Em bé',     ico:'👶', p:{pitch:7,  tone:90,  robot:0,  vibrato:8,  dist:0,  echo:0,  reverb:12, gain:105} },
+  { name:'Con gái',   ico:'👧', p:{pitch:4,  tone:95,  robot:0,  vibrato:5,  dist:0,  echo:0,  reverb:15, gain:105} },
+  { name:'Trầm ấm',   ico:'🧔', p:{pitch:-5, tone:70,  robot:0,  vibrato:0,  dist:0,  echo:0,  reverb:18, gain:110} },
+  { name:'Robot',     ico:'🤖', p:{pitch:0,  tone:80,  robot:85, vibrato:0,  dist:10, echo:5,  reverb:5,  gain:100} },
+  { name:'Ngoài hành tinh', ico:'👽', p:{pitch:5, tone:85, robot:35, vibrato:55, dist:0, echo:15, reverb:25, gain:100} },
+  { name:'Quái vật',  ico:'👹', p:{pitch:-8, tone:55,  robot:0,  vibrato:15, dist:45, echo:10, reverb:30, gain:115} },
+  { name:'Sóc chuột', ico:'🐿️', p:{pitch:10, tone:100, robot:0,  vibrato:10, dist:0,  echo:0,  reverb:8,  gain:100} },
+  { name:'Heli',      ico:'🎈', p:{pitch:8,  tone:100, robot:0,  vibrato:0,  dist:0,  echo:0,  reverb:5,  gain:100} },
+  { name:'Vang hang động', ico:'🕳️', p:{pitch:0, tone:85, robot:0, vibrato:0, dist:0, echo:55, reverb:45, gain:100} },
+  { name:'Ma ám',     ico:'👻', p:{pitch:-3, tone:60,  robot:0,  vibrato:35, dist:5,  echo:35, reverb:60, gain:105} },
+  { name:'Đài phát thanh', ico:'📻', p:{pitch:0, tone:45, robot:15, vibrato:0, dist:20, echo:0, reverb:0, gain:110} },
+];
+
+let ctx=null, running=false, stream=null;
+let N = {}; // nodes
+let outAudio = new Audio(); outAudio.autoplay = true;
+
+/* ============ HELPERS ============ */
+function dryWet(ctx, wetIn, wetOut){
+  const input=ctx.createGain(), output=ctx.createGain(), dry=ctx.createGain(), wet=ctx.createGain();
+  input.connect(dry); dry.connect(output);
+  input.connect(wetIn); wetOut.connect(wet); wet.connect(output);
+  return { input, output, setMix(m){ const t=ctx.currentTime; dry.gain.setTargetAtTime(1-m,t,.03); wet.gain.setTargetAtTime(m,t,.03); } };
+}
+function makeImpulse(ctx, dur=2.2, decay=2.5){
+  const len = ctx.sampleRate*dur, imp = ctx.createBuffer(2,len,ctx.sampleRate);
+  for(let c=0;c<2;c++){ const d=imp.getChannelData(c);
+    for(let i=0;i<len;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/len,decay); }
+  return imp;
+}
+function distCurve(k){
+  const n=1024, c=new Float32Array(n);
+  for(let i=0;i<n;i++){ const x=i*2/n-1; c[i]=(3+k)*x*20*(Math.PI/180)/(Math.PI+k*Math.abs(x)); }
+  return c;
+}
+
+/* ============ BUILD AUDIO GRAPH ============ */
+async function startAudio(){
+  const denoise = document.getElementById('denoiseToggle').checked;
+  const devId = document.getElementById('inputSelect').value;
+  ctx = new (window.AudioContext||window.webkitAudioContext)({ latencyHint:'interactive' });
+  await ctx.audioWorklet.addModule(URL.createObjectURL(new Blob([workletCode],{type:'application/javascript'})));
+
+  stream = await navigator.mediaDevices.getUserMedia({ audio:{
+    deviceId: devId ? {exact:devId} : undefined,
+    echoCancellation: denoise, noiseSuppression: denoise, autoGainControl: denoise,
+    channelCount:1, sampleRate:48000
+  }});
+
+  const src = ctx.createMediaStreamSource(stream);
+  const inputGain = ctx.createGain(); inputGain.gain.value = 1.4;
+
+  // Pitch shifter
+  const shifter = new AudioWorkletNode(ctx,'pitch-shifter');
+  shifter.port.postMessage(Math.pow(2, P.pitch/12));
+
+  // Filters: bỏ ù trầm + tone
+  const hp = ctx.createBiquadFilter(); hp.type='highpass'; hp.frequency.value=80;
+  const tone = ctx.createBiquadFilter(); tone.type='lowpass'; tone.frequency.value=20000;
+
+  // Distortion
+  const shaper = ctx.createWaveShaper(); shaper.curve = distCurve(20); shaper.oversample='2x';
+  const distFX = dryWet(ctx, shaper, shaper);
+
+  // Robot (ring modulation)
+  const ringGain = ctx.createGain(); ringGain.gain.value=0;
+  const ringOsc = ctx.createOscillator(); ringOsc.type='square'; ringOsc.frequency.value=55;
+  ringOsc.connect(ringGain.gain); ringOsc.start();
+  const robotFX = dryWet(ctx, ringGain, ringGain);
+
+  // Vibrato
+  const vibDelay = ctx.createDelay(0.1); vibDelay.delayTime.value=0.02;
+  const lfo = ctx.createOscillator(); lfo.frequency.value=6;
+  const lfoGain = ctx.createGain(); lfoGain.gain.value=0;
+  lfo.connect(lfoGain); lfoGain.connect(vibDelay.delayTime); lfo.start();
+  const vibFX = dryWet(ctx, vibDelay, vibDelay);
+
+  // Echo
+  const echoDelay = ctx.createDelay(1); echoDelay.delayTime.value=0.32;
+  const fb = ctx.createGain(); fb.gain.value=0.42;
+  echoDelay.connect(fb); fb.connect(echoDelay);
+  const echoFX = dryWet(ctx, echoDelay, echoDelay);
+
+  // Reverb
+  const conv = ctx.createConvolver(); conv.buffer = makeImpulse(ctx);
+  const revFX = dryWet(ctx, conv, conv);
+
+  // Master
+  const master = ctx.createGain();
+  const analyser = ctx.createAnalyser(); analyser.fftSize=2048;
+  const monitorGain = ctx.createGain();
+  const streamDest = ctx.createMediaStreamDestination();
+
+  // Chain
+  src.connect(inputGain); inputGain.connect(shifter); shifter.connect(hp); hp.connect(tone);
+  tone.connect(distFX.input); distFX.output.connect(robotFX.input);
+  robotFX.output.connect(vibFX.input); vibFX.output.connect(echoFX.input);
+  echoFX.output.connect(revFX.input); revFX.output.connect(master);
+  master.connect(analyser);
+  master.connect(monitorGain); monitorGain.connect(ctx.destination);
+  master.connect(streamDest);
+  outAudio.srcObject = streamDest.stream;
+  outAudio.play().catch(()=>{});
+
+  N = { shifter, tone, distFX, robotFX, ringOsc, vibFX, lfoGain, echoFX, revFX, master, analyser, monitorGain };
+  applyAll();
+  drawViz();
+}
+
+function applyAll(){
+  if(!N.shifter) return;
+  N.shifter.port.postMessage(Math.pow(2, P.pitch/12));
+  N.tone.frequency.setTargetAtTime(400 + (P.tone/100)*15600, ctx.currentTime, .03);
+  N.distFX.setMix(P.dist/100);
+  N.robotFX.setMix(P.robot/100);
+  N.ringOsc.frequency.setTargetAtTime(30 + (P.robot/100)*40, ctx.currentTime, .05);
+  N.vibFX.setMix(P.vibrato>0 ? Math.min(1, P.vibrato/60) : 0);
+  N.lfoGain.gain.setTargetAtTime((P.vibrato/100)*0.012, ctx.currentTime, .05);
+  N.echoFX.setMix(P.echo/100);
+  N.revFX.setMix(P.reverb/100);
+  N.master.gain.setTargetAtTime(P.gain/100, ctx.currentTime, .03);
+  N.monitorGain.gain.setTargetAtTime(document.getElementById('monitorToggle').checked?1:0, ctx.currentTime, .05);
+}
+
+/* ============ VISUALIZER ============ */
+function drawViz(){
+  const cv = document.getElementById('viz'), c2d = cv.getContext('2d');
+  const data = new Uint8Array(2048);
+  function loop(){
+    if(!running) { c2d.clearRect(0,0,cv.width,cv.height); document.getElementById('meter').style.width='0%'; return; }
+    requestAnimationFrame(loop);
+    cv.width = cv.clientWidth; cv.height = cv.clientHeight;
+    N.analyser.getByteTimeDomainData(data);
+    let sum=0;
+    c2d.lineWidth=2;
+    const grad = c2d.createLinearGradient(0,0,cv.width,0);
+    grad.addColorStop(0,'#22d3ee'); grad.addColorStop(.5,'#a78bfa'); grad.addColorStop(1,'#f472b6');
+    c2d.strokeStyle=grad; c2d.beginPath();
+    const step = Math.ceil(data.length/cv.width);
+    for(let x=0;x<cv.width;x++){
+      const v = data[x*step]/128 - 1;
+      sum += v*v;
+      const y = cv.height/2 + v*cv.height*0.45;
+      x===0 ? c2d.moveTo(x,y) : c2d.lineTo(x,y);
+    }
+    c2d.stroke();
+    const rms = Math.min(100, Math.sqrt(sum/cv.width)*400);
+    document.getElementById('meter').style.width = rms+'%';
+  }
+  loop();
+}
+
+/* ============ UI ============ */
+const micBtn = document.getElementById('micBtn'), micStatus = document.getElementById('micStatus');
+micBtn.onclick = async () => {
+  if(running){
+    stream?.getTracks().forEach(t=>t.stop()); ctx?.close();
+    running=false; micBtn.classList.remove('active'); micBtn.textContent='🎙️';
+    micStatus.textContent='Nhấn để bật micro'; micStatus.classList.remove('on');
+    return;
+  }
+  try{
+    micStatus.textContent='⏳ Đang khởi động...';
+    await startAudio();
+    running=true; micBtn.classList.add('active'); micBtn.textContent='⏹️';
+    micStatus.textContent='🔴 ĐANG PHÁT TRỰC TIẾP — hãy nói thử!'; micStatus.classList.add('on');
+    loadDevices();
+  }catch(e){
+    micStatus.textContent='❌ Không truy cập được micro: '+e.message;
+  }
+};
+
+async function loadDevices(){
+  const devs = await navigator.mediaDevices.enumerateDevices();
+  const ins = document.getElementById('inputSelect'), outs = document.getElementById('outputSelect');
+  ins.innerHTML=''; outs.innerHTML='<option value="">Loa / Tai nghe mặc định</option>';
+  devs.forEach(d=>{
+    if(d.kind==='audioinput') ins.add(new Option(d.label||'Micro '+(ins.length+1), d.deviceId));
+    if(d.kind==='audiooutput') outs.add(new Option(d.label||'Thiết bị '+(outs.length+1), d.deviceId));
+  });
+}
+document.getElementById('inputSelect').onchange = async ()=>{ if(running){ micBtn.onclick(); micBtn.onclick(); } };
+document.getElementById('outputSelect').onchange = e => {
+  if(e.target.value && outAudio.setSinkId) outAudio.setSinkId(e.target.value).catch(()=>{});
+};
+document.getElementById('monitorToggle').onchange = applyAll;
+
+/* Presets */
+const grid = document.getElementById('presetGrid');
+PRESETS.forEach((pr,i)=>{
+  const el = document.createElement('div');
+  el.className='preset'+(i===0?' active':'');
+  el.innerHTML=`<div class="ico">${pr.ico}</div><div class="name">${pr.name}</div>`;
+  el.onclick=()=>{
+    document.querySelectorAll('.preset').forEach(x=>x.classList.remove('active'));
+    el.classList.add('active');
+    Object.assign(P, pr.p);
+    syncSliders(); applyAll();
+  };
+  grid.appendChild(el);
+});
+
+/* Sliders */
+const SL = [
+  ['sPitch','vPitch','pitch', v=> (v>0?'+':'')+v+' semitone'],
+  ['sTone','vTone','tone', v=>v+'%'],
+  ['sRobot','vRobot','robot', v=>v+'%'],
+  ['sVibrato','vVibrato','vibrato', v=>v+'%'],
+  ['sDist','vDist','dist', v=>v+'%'],
+  ['sEcho','vEcho','echo', v=>v+'%'],
+  ['sReverb','vReverb','reverb', v=>v+'%'],
+  ['sGain','vGain','gain', v=>v+'%'],
+];
+function paintFill(el){ const p=(el.value-el.min)/(el.max-el.min)*100; el.style.setProperty('--fill',p+'%'); }
+SL.forEach(([sid,vid,key,fmt])=>{
+  const s=document.getElementById(sid), v=document.getElementById(vid);
+  s.addEventListener('input',()=>{ P[key]=parseFloat(s.value); v.textContent=fmt(s.value); paintFill(s); applyAll();
+    document.querySelectorAll('.preset').forEach(x=>x.classList.remove('active')); });
+  paintFill(s);
+});
+function syncSliders(){
+  SL.forEach(([sid,vid,key,fmt])=>{
+    const s=document.getElementById(sid); s.value=P[key];
+    document.getElementById(vid).textContent=fmt(P[key]); paintFill(s);
+  });
+}
+document.getElementById('resetBtn').onclick=()=>{ Object.assign(P,PRESETS[0].p); syncSliders(); applyAll();
+  document.querySelectorAll('.preset').forEach((x,i)=>x.classList.toggle('active',i===0)); };
+</script>
+</body>
+</html>
