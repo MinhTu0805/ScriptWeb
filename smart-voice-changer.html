@@ -2,477 +2,1373 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🎙️ VoiceShift Pro — Chỉnh Giọng Thông Minh Cho Streamer</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#070912">
+<title>VoxMorph Studio — Đổi giọng thông minh cho Streamer</title>
 <style>
-  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-  :root {
-    --bg:#0a0a14; --card:rgba(255,255,255,.05); --border:rgba(255,255,255,.1);
-    --accent:#8b5cf6; --accent2:#06b6d4; --pink:#ec4899; --text:#e5e7eb; --muted:#9ca3af;
+  :root{
+    --bg:#070912; --bg2:#0a0d1a;
+    --card:linear-gradient(180deg,rgba(255,255,255,.058),rgba(255,255,255,.022));
+    --line:rgba(255,255,255,.085); --line2:rgba(255,255,255,.16);
+    --txt:#e9edfb; --dim:#8e9ab8; --dim2:#6d7899;
+    --ok:#34d399; --warn:#fbbf24; --bad:#fb7185;
+    --a1:#22d3ee; --a2:#8b5cf6; --a3:#f472b6;
+    --grad:linear-gradient(120deg,var(--a1),var(--a2) 52%,var(--a3));
+    --r:20px; --rs:13px;
+    --sh:0 14px 44px rgba(0,0,0,.42);
   }
-  body {
-    font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
-    background:var(--bg); color:var(--text); min-height:100vh; overflow-x:hidden;
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:"Inter","Segoe UI",system-ui,-apple-system,"Noto Sans",Roboto,sans-serif;
+    background:var(--bg); color:var(--txt); min-height:100dvh; overflow-x:hidden; font-size:14px;
+    -webkit-tap-highlight-color:transparent; -webkit-font-smoothing:antialiased;
   }
-  /* Animated background */
-  .bg-orbs { position:fixed; inset:0; z-index:-1; overflow:hidden; }
-  .orb { position:absolute; border-radius:50%; filter:blur(90px); opacity:.35; animation:float 14s ease-in-out infinite; }
-  .orb1 { width:420px;height:420px; background:#7c3aed; top:-120px; left:-100px; }
-  .orb2 { width:380px;height:380px; background:#0891b2; bottom:-100px; right:-80px; animation-delay:-5s; }
-  .orb3 { width:280px;height:280px; background:#db2777; top:40%; left:55%; animation-delay:-9s; }
-  @keyframes float { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(40px,-40px) scale(1.12)} }
+  .bgfx{position:fixed;inset:0;z-index:-2;overflow:hidden;pointer-events:none}
+  .bgfx i{position:absolute;display:block;border-radius:50%;filter:blur(110px);opacity:.3}
+  .bgfx i:nth-child(1){width:54vw;height:54vw;background:#0ea5e9;top:-20vw;left:-14vw;animation:fl1 22s ease-in-out infinite}
+  .bgfx i:nth-child(2){width:46vw;height:46vw;background:#8b5cf6;bottom:-18vw;right:-12vw;animation:fl2 26s ease-in-out infinite}
+  .bgfx i:nth-child(3){width:30vw;height:30vw;background:#f472b6;top:38%;left:52%;opacity:.16;animation:fl1 30s ease-in-out infinite reverse}
+  @keyframes fl1{50%{transform:translate3d(5vw,4vw,0) scale(1.12)}}
+  @keyframes fl2{50%{transform:translate3d(-5vw,-3vw,0) scale(1.08)}}
+  .bggrid{position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.35;
+    background-image:linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),
+                     linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);
+    background-size:56px 56px;
+    -webkit-mask-image:radial-gradient(circle at 50% 0%,#000,transparent 72%);
+            mask-image:radial-gradient(circle at 50% 0%,#000,transparent 72%)}
 
-  header {
-    text-align:center; padding:28px 16px 10px;
-  }
-  header h1 {
-    font-size:clamp(1.5rem,4vw,2.4rem); font-weight:800;
-    background:linear-gradient(90deg,#a78bfa,#22d3ee,#f472b6);
-    -webkit-background-clip:text; background-clip:text; color:transparent;
-  }
-  header p { color:var(--muted); margin-top:6px; font-size:.95rem; }
-  .live-badge {
-    display:inline-flex; align-items:center; gap:6px; margin-top:10px;
-    padding:5px 14px; border-radius:999px; font-size:.78rem; font-weight:600;
-    background:rgba(239,68,68,.15); color:#fca5a5; border:1px solid rgba(239,68,68,.35);
-  }
-  .live-dot { width:8px;height:8px;border-radius:50%;background:#ef4444; animation:pulse 1.2s infinite; }
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+  .ic{width:18px;height:18px;flex:0 0 auto;fill:none;stroke:currentColor;stroke-width:1.7;
+      stroke-linecap:round;stroke-linejoin:round;overflow:visible}
+  .ic.sm{width:15px;height:15px}
+  .ic.lg{width:26px;height:26px}
 
-  .container { max-width:1100px; margin:0 auto; padding:16px; display:grid; grid-template-columns:1fr 1fr; gap:16px; }
-  @media (max-width:820px){ .container{ grid-template-columns:1fr; } }
+  /* ================= HEADER ================= */
+  .hdr{
+    position:sticky;top:0;z-index:40;
+    background:rgba(7,9,18,.78);backdrop-filter:blur(20px) saturate(160%);
+    border-bottom:1px solid var(--line);
+    padding:10px max(14px,env(safe-area-inset-left)) 10px max(14px,env(safe-area-inset-right));
+    display:flex;align-items:center;gap:10px
+  }
+  .brand{display:flex;align-items:center;gap:11px;min-width:0}
+  .mark{width:38px;height:38px;border-radius:13px;background:var(--grad);display:grid;place-items:center;
+    color:#080a14;box-shadow:0 8px 24px rgba(139,92,246,.42)}
+  .mark .ic{width:21px;height:21px;stroke-width:2}
+  .bt{font-weight:800;letter-spacing:.2px;font-size:15px;line-height:1.15;white-space:nowrap}
+  .bt span{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .bt small{display:block;font-weight:500;font-size:10.5px;color:var(--dim2);letter-spacing:.1px;margin-top:2px}
+  .sp{flex:1}
+  .pill{display:inline-flex;align-items:center;gap:7px;font-size:11.5px;color:var(--dim);
+    border:1px solid var(--line);background:rgba(255,255,255,.045);padding:7px 12px;border-radius:999px;white-space:nowrap}
+  .pill.mono{font-variant-numeric:tabular-nums;letter-spacing:.3px}
+  .led{width:8px;height:8px;border-radius:50%;background:#586080;flex:0 0 auto;transition:.25s}
+  .led.on{background:var(--ok);box-shadow:0 0 0 4px rgba(52,211,153,.15),0 0 12px var(--ok);animation:pls 1.8s infinite}
+  .led.mute{background:var(--bad);box-shadow:0 0 0 4px rgba(251,113,133,.15)}
+  @keyframes pls{50%{opacity:.5}}
 
-  .card {
-    background:var(--card); border:1px solid var(--border); border-radius:20px;
-    padding:20px; backdrop-filter:blur(14px); box-shadow:0 8px 32px rgba(0,0,0,.35);
-  }
-  .card h2 { font-size:1rem; font-weight:700; margin-bottom:14px; display:flex; align-items:center; gap:8px; }
-  .full { grid-column:1/-1; }
+  button{font-family:inherit;color:inherit;cursor:pointer;border:none;background:none;padding:0}
+  .btn{border:1px solid var(--line);background:rgba(255,255,255,.05);padding:10px 15px;border-radius:13px;
+    font-size:13px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    transition:transform .16s,background .16s,border-color .16s;white-space:nowrap}
+  .btn:hover{background:rgba(255,255,255,.1);border-color:var(--line2);transform:translateY(-1px)}
+  .btn:active{transform:translateY(0) scale(.985)}
+  .btn.primary{background:var(--grad);border-color:transparent;color:#080a14;box-shadow:0 8px 26px rgba(34,211,238,.26)}
+  .btn.primary:hover{filter:brightness(1.07)}
+  .btn.danger{border-color:rgba(251,113,133,.42);color:#ffdde4;background:rgba(251,113,133,.13)}
+  .btn.ghost{background:transparent}
+  .btn.sq{padding:10px;border-radius:12px}
+  .btn.wide{width:100%}
+  .btn:disabled{opacity:.42;cursor:not-allowed;transform:none}
+  .btn.rec-on{border-color:rgba(251,113,133,.55);background:rgba(251,113,133,.16);color:#ffe2e7}
 
-  /* Mic control */
-  .mic-panel { text-align:center; }
-  .mic-btn {
-    width:110px;height:110px;border-radius:50%; border:none; cursor:pointer;
-    background:linear-gradient(135deg,#8b5cf6,#06b6d4); color:#fff; font-size:2.4rem;
-    box-shadow:0 0 0 0 rgba(139,92,246,.5); transition:transform .15s, box-shadow .3s;
-  }
-  .mic-btn:hover { transform:scale(1.06); }
-  .mic-btn.active {
-    background:linear-gradient(135deg,#ef4444,#ec4899);
-    animation:micpulse 1.6s infinite;
-  }
-  @keyframes micpulse { 0%{box-shadow:0 0 0 0 rgba(239,68,68,.5)} 70%{box-shadow:0 0 0 26px rgba(239,68,68,0)} 100%{box-shadow:0 0 0 0 rgba(239,68,68,0)} }
-  .mic-status { margin-top:12px; font-size:.88rem; color:var(--muted); }
-  .mic-status.on { color:#4ade80; font-weight:600; }
+  /* ================= LAYOUT ================= */
+  .app{max-width:1560px;margin:0 auto;
+    padding:16px max(14px,env(safe-area-inset-left)) 28px max(14px,env(safe-area-inset-right));
+    display:grid;grid-template-columns:340px minmax(0,1fr) 336px;gap:16px;align-items:start}
+  .col{display:flex;flex-direction:column;gap:16px;min-width:0}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px;
+    backdrop-filter:blur(16px);box-shadow:var(--sh)}
+  .card.tight{padding:14px}
+  .ch{display:flex;align-items:center;gap:9px;margin-bottom:4px}
+  .ch h2{margin:0;font-size:12px;letter-spacing:.9px;text-transform:uppercase;color:#cfd6f2;font-weight:700}
+  .ch .ic{color:var(--a1)}
+  .ch .sp{flex:1}
+  .hint{margin:6px 0 13px;font-size:11.8px;color:var(--dim);line-height:1.6}
+  .hint b{color:#cdd6f5;font-weight:600}
 
-  canvas#viz { width:100%; height:90px; border-radius:12px; background:rgba(0,0,0,.35); margin-top:14px; }
-  .meter-wrap { margin-top:10px; height:10px; border-radius:99px; background:rgba(255,255,255,.08); overflow:hidden; }
-  .meter { height:100%; width:0%; border-radius:99px; background:linear-gradient(90deg,#22d3ee,#a78bfa,#f472b6); transition:width .06s linear; }
+  /* ================= PRESETS ================= */
+  .search{position:relative;margin-bottom:11px}
+  .search .ic{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--dim2);width:16px;height:16px}
+  .search input{width:100%;padding:10px 12px 10px 34px;border-radius:12px;background:rgba(255,255,255,.045);
+    border:1px solid var(--line);color:var(--txt);font-family:inherit;font-size:12.5px;outline:none;transition:.16s}
+  .search input:focus{border-color:rgba(139,92,246,.6);background:rgba(255,255,255,.07)}
+  .search input::placeholder{color:var(--dim2)}
+  .pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(97px,1fr));gap:9px}
+  .preset{border:1px solid var(--line);background:rgba(255,255,255,.032);border-radius:15px;
+    padding:12px 6px 10px;text-align:center;position:relative;overflow:hidden;transition:.16s;color:var(--txt)}
+  .preset .ic{margin:0 auto;display:block;color:#cbd3f2;transition:.16s}
+  .preset .nm{font-size:11.3px;font-weight:600;line-height:1.3;margin-top:7px;color:#dbe1f7}
+  .preset .kb{position:absolute;top:6px;right:8px;font-size:9.5px;color:var(--dim2);font-weight:700}
+  .preset:hover{transform:translateY(-2px);border-color:var(--line2);background:rgba(255,255,255,.06)}
+  .preset.active{background:var(--grad);border-color:transparent;box-shadow:0 10px 26px rgba(139,92,246,.34)}
+  .preset.active .ic,.preset.active .nm{color:#0a0b16}
+  .preset.active .kb{color:rgba(0,0,0,.42)}
+  .empty{grid-column:1/-1;font-size:11.5px;color:var(--dim2);text-align:center;padding:14px 6px;
+    border:1px dashed var(--line);border-radius:13px}
 
-  /* Presets */
-  .presets { display:grid; grid-template-columns:repeat(auto-fill,minmax(105px,1fr)); gap:10px; }
-  .preset {
-    padding:14px 8px; border-radius:14px; border:1px solid var(--border); cursor:pointer;
-    background:rgba(255,255,255,.04); text-align:center; transition:all .18s; user-select:none;
-  }
-  .preset:hover { transform:translateY(-3px); border-color:var(--accent); }
-  .preset.active {
-    background:linear-gradient(135deg,rgba(139,92,246,.35),rgba(6,182,212,.3));
-    border-color:var(--accent); box-shadow:0 0 18px rgba(139,92,246,.35);
-  }
-  .preset .ico { font-size:1.7rem; }
-  .preset .name { font-size:.8rem; font-weight:600; margin-top:6px; }
+  /* ================= CONTROLS ================= */
+  .ctl{margin:15px 0}
+  .ctl:last-child{margin-bottom:2px}
+  .ctl .lab{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:9px}
+  .ctl .lab span{font-size:12.4px;color:#c4cce8}
+  .ctl .val{font-size:11.5px;font-weight:700;font-variant-numeric:tabular-nums;color:#eaeefd;
+    background:rgba(255,255,255,.06);border:1px solid var(--line);padding:3px 9px;border-radius:9px;min-width:62px;text-align:center}
+  input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:7px;border-radius:99px;outline:none;
+    background:linear-gradient(90deg,var(--a1),var(--a2)) no-repeat,rgba(255,255,255,.1);
+    background-size:var(--fill,50%) 100%;cursor:pointer}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:19px;height:19px;border-radius:50%;
+    background:#fff;box-shadow:0 0 0 4px rgba(139,92,246,.26),0 3px 10px rgba(0,0,0,.55);transition:.12s}
+  input[type=range]::-webkit-slider-thumb:active{transform:scale(1.2);box-shadow:0 0 0 7px rgba(139,92,246,.24)}
+  input[type=range]::-moz-range-thumb{width:19px;height:19px;border:none;border-radius:50%;background:#fff;
+    box-shadow:0 0 0 4px rgba(139,92,246,.26)}
+  select{width:100%;padding:10px 12px;border-radius:12px;background:#0e1424;color:var(--txt);
+    border:1px solid var(--line);font-size:12.5px;font-family:inherit;outline:none}
+  select:focus{border-color:rgba(139,92,246,.6)}
+  .sw{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;
+    border-top:1px solid rgba(255,255,255,.05)}
+  .sw:first-of-type{border-top:none}
+  .sw .tx{font-size:12.5px;color:#ccd4ef}
+  .sw small{display:block;color:var(--dim2);font-size:10.8px;margin-top:3px;line-height:1.45}
+  .tg{width:46px;height:26px;border-radius:99px;background:rgba(255,255,255,.13);position:relative;flex:0 0 auto;
+    transition:.22s;border:1px solid rgba(255,255,255,.06);cursor:pointer}
+  .tg::after{content:"";position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;
+    background:#fff;transition:.22s cubic-bezier(.4,1.4,.5,1);box-shadow:0 2px 6px rgba(0,0,0,.4)}
+  .tg.on{background:var(--grad);border-color:transparent}
+  .tg.on::after{left:23px}
 
-  /* Sliders */
-  .slider-row { margin-bottom:14px; }
-  .slider-row label { display:flex; justify-content:space-between; font-size:.82rem; color:var(--muted); margin-bottom:6px; }
-  .slider-row label b { color:var(--text); font-variant-numeric:tabular-nums; }
-  input[type=range] {
-    width:100%; -webkit-appearance:none; appearance:none; height:6px; border-radius:99px;
-    background:linear-gradient(90deg,var(--accent) var(--fill,50%), rgba(255,255,255,.12) var(--fill,50%));
-    outline:none; cursor:pointer;
-  }
-  input[type=range]::-webkit-slider-thumb {
-    -webkit-appearance:none; width:18px;height:18px;border-radius:50%;
-    background:#fff; border:3px solid var(--accent); box-shadow:0 0 10px rgba(139,92,246,.6);
-  }
-  input[type=range]::-moz-range-thumb { width:16px;height:16px;border-radius:50%; background:#fff; border:3px solid var(--accent); }
+  /* ================= VISUALIZER ================= */
+  .viz{position:relative;border-radius:16px;overflow:hidden;background:radial-gradient(120% 120% at 50% 100%,rgba(139,92,246,.12),rgba(0,0,0,.42));
+    border:1px solid var(--line)}
+  canvas{display:block;width:100%;height:186px}
+  .viz .chip{position:absolute;top:10px;left:12px;font-size:10px;letter-spacing:1.1px;color:var(--dim);
+    background:rgba(0,0,0,.35);border:1px solid var(--line);padding:4px 9px;border-radius:99px}
+  .viz .note{position:absolute;top:10px;right:12px;font-size:10.5px;letter-spacing:.6px;color:#d7defa;
+    background:rgba(0,0,0,.4);border:1px solid var(--line);padding:4px 10px;border-radius:99px;font-variant-numeric:tabular-nums}
+  .seg{display:flex;gap:4px;background:rgba(255,255,255,.045);border:1px solid var(--line);padding:4px;border-radius:14px}
+  .seg button{flex:1;padding:9px 6px;border-radius:10px;font-size:12px;font-weight:600;color:var(--dim);
+    display:inline-flex;align-items:center;justify-content:center;gap:7px;transition:.16s}
+  .seg button:hover{color:var(--txt)}
+  .seg button.on{background:var(--grad);color:#0a0b16;box-shadow:0 5px 16px rgba(139,92,246,.3)}
+  .meters{display:grid;grid-template-columns:1fr 1fr 1fr;gap:11px;margin-top:13px}
+  .meter small{font-size:10px;color:var(--dim2);letter-spacing:.7px;display:block}
+  .bar{height:8px;border-radius:99px;background:rgba(255,255,255,.08);overflow:hidden;margin-top:6px}
+  .bar i{display:block;height:100%;width:0%;border-radius:99px;
+    background:linear-gradient(90deg,#34d399,#fbbf24 74%,#fb7185);transition:width .07s linear}
+  .bar.gr i{background:linear-gradient(90deg,#22d3ee,#8b5cf6)}
 
-  select {
-    width:100%; padding:10px 12px; border-radius:12px; background:rgba(0,0,0,.4);
-    color:var(--text); border:1px solid var(--border); font-size:.85rem; margin-bottom:10px; outline:none;
-  }
-  .toggle-row { display:flex; align-items:center; justify-content:space-between; padding:9px 0; font-size:.86rem; border-bottom:1px solid rgba(255,255,255,.06); }
-  .toggle-row:last-child { border-bottom:none; }
-  .switch { position:relative; width:44px; height:24px; flex-shrink:0; }
-  .switch input { opacity:0; width:0; height:0; }
-  .track { position:absolute; inset:0; border-radius:99px; background:rgba(255,255,255,.15); transition:.25s; cursor:pointer; }
-  .track::before { content:''; position:absolute; width:18px;height:18px;border-radius:50%; background:#fff; top:3px; left:3px; transition:.25s; }
-  .switch input:checked + .track { background:linear-gradient(90deg,var(--accent),var(--accent2)); }
-  .switch input:checked + .track::before { transform:translateX(20px); }
+  /* ================= XY PAD ================= */
+  .xy{position:relative;margin-top:14px;aspect-ratio:16/8.4;border-radius:16px;border:1px solid var(--line);
+    overflow:hidden;touch-action:none;cursor:crosshair;
+    background:radial-gradient(circle at var(--px,50%) var(--py,50%),rgba(139,92,246,.28),transparent 58%),
+      repeating-linear-gradient(0deg,rgba(255,255,255,.05) 0 1px,transparent 1px 12.5%),
+      repeating-linear-gradient(90deg,rgba(255,255,255,.05) 0 1px,transparent 1px 12.5%),
+      rgba(0,0,0,.3)}
+  .xy .ax{position:absolute;background:rgba(255,255,255,.12)}
+  .xy .ax.h{left:0;right:0;top:50%;height:1px}
+  .xy .ax.v{top:0;bottom:0;left:50%;width:1px}
+  .xy .hnd{position:absolute;left:50%;top:50%;width:30px;height:30px;margin:-15px 0 0 -15px;border-radius:50%;
+    background:var(--grad);box-shadow:0 0 0 5px rgba(139,92,246,.2),0 8px 20px rgba(0,0,0,.55);pointer-events:none;
+    transition:box-shadow .16s}
+  .xy.drag .hnd{box-shadow:0 0 0 9px rgba(139,92,246,.22),0 8px 20px rgba(0,0,0,.55)}
+  .xy .cap{position:absolute;font-size:9.6px;letter-spacing:.9px;color:var(--dim2);pointer-events:none;text-transform:uppercase}
+  .xy .cap.b{bottom:8px;left:50%;transform:translateX(-50%)}
+  .xy .cap.l{left:9px;top:50%;transform:translateY(-50%) rotate(-90deg);transform-origin:left center}
+  .stat2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+  .kc{border:1px solid var(--line);border-radius:16px;padding:13px 14px;background:rgba(255,255,255,.028)}
+  .kc .t{font-size:10.4px;color:var(--dim2);letter-spacing:.8px;text-transform:uppercase;display:flex;align-items:center;gap:6px}
+  .kc .v{font-size:27px;font-weight:800;margin-top:5px;font-variant-numeric:tabular-nums;
+    background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;line-height:1.1}
+  .kc .v i{font-size:13px;font-style:normal;color:var(--dim);-webkit-text-fill-color:var(--dim)}
 
-  .guide { font-size:.85rem; line-height:1.7; color:var(--muted); }
-  .guide b { color:var(--text); }
-  .guide code { background:rgba(139,92,246,.2); padding:2px 7px; border-radius:6px; color:#c4b5fd; font-size:.8rem; }
-  .guide ol { padding-left:20px; margin-top:6px; }
-  .warn { margin-top:10px; padding:10px 14px; border-radius:12px; background:rgba(234,179,8,.1); border:1px solid rgba(234,179,8,.3); color:#fde68a; font-size:.8rem; }
-  footer { text-align:center; color:var(--muted); font-size:.78rem; padding:20px; }
+  .note-box{font-size:11.6px;color:var(--dim);line-height:1.75}
+  .note-box b{color:#d6ddf7}
+  code{background:rgba(255,255,255,.09);padding:2px 7px;border-radius:7px;color:#e6ecff;font-size:11px;
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+  .steps{counter-reset:s;display:grid;gap:9px;margin-top:4px}
+  .step{display:flex;gap:10px;align-items:flex-start;font-size:11.7px;color:var(--dim);line-height:1.6}
+  .step em{counter-increment:s;font-style:normal;flex:0 0 auto;width:21px;height:21px;border-radius:8px;
+    background:rgba(139,92,246,.18);border:1px solid rgba(139,92,246,.35);color:#d8c9ff;
+    display:grid;place-items:center;font-size:10.5px;font-weight:800;margin-top:1px}
+  .step em::before{content:counter(s)}
+  .warnbox{display:flex;gap:10px;border:1px solid rgba(251,191,36,.3);background:rgba(251,191,36,.08);
+    border-radius:13px;padding:11px 12px;font-size:11.4px;color:#fbe8bb;line-height:1.6;margin-top:11px}
+  .warnbox .ic{color:var(--warn);margin-top:1px}
+  .keys{display:flex;flex-wrap:wrap;gap:7px}
+  .keys span{font-size:11px;color:var(--dim);display:inline-flex;align-items:center;gap:6px}
+  kbd{background:rgba(255,255,255,.08);border:1px solid var(--line2);border-bottom-width:2px;border-radius:7px;
+    padding:2px 7px;font-size:10.5px;font-family:ui-monospace,monospace;color:#e7ecff}
+  .flex{display:flex;gap:9px;flex-wrap:wrap}
+  .flex>.btn{flex:1}
+  audio{width:100%;margin-top:11px;border-radius:12px}
+  .divider{height:1px;background:var(--line);margin:14px 0}
+
+  /* ================= TABBAR (mobile) ================= */
+  .tabbar{display:none;position:fixed;left:0;right:0;bottom:0;z-index:45;
+    background:rgba(7,9,18,.9);backdrop-filter:blur(20px);border-top:1px solid var(--line);
+    padding:8px 8px calc(8px + env(safe-area-inset-bottom));gap:6px}
+  .tabbar button{flex:1;padding:8px 4px;border-radius:14px;font-size:10.5px;font-weight:600;color:var(--dim2);
+    display:flex;flex-direction:column;align-items:center;gap:5px;transition:.16s}
+  .tabbar button.on{background:rgba(139,92,246,.16);color:#e6e9ff}
+  .tabbar button.on .ic{color:var(--a1)}
+
+  /* ================= TOAST ================= */
+  .toasts{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(22px + env(safe-area-inset-bottom));
+    z-index:80;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none;width:min(92vw,420px)}
+  .toast{display:flex;align-items:center;gap:10px;background:rgba(16,20,36,.95);border:1px solid var(--line2);
+    border-radius:14px;padding:11px 15px;font-size:12.5px;box-shadow:0 14px 40px rgba(0,0,0,.6);
+    animation:tin .28s cubic-bezier(.2,1.3,.4,1)}
+  .toast.ok .ic{color:var(--ok)} .toast.bad .ic{color:var(--bad)} .toast.info .ic{color:var(--a1)}
+  @keyframes tin{from{opacity:0;transform:translateY(14px) scale(.96)}}
+
+  @media(max-width:1180px){ .app{grid-template-columns:300px minmax(0,1fr)} .col.right{grid-column:1/-1} }
+  @media(max-width:900px){
+    .app{grid-template-columns:1fr;gap:0;padding-bottom:96px}
+    .col{display:none;gap:14px}
+    .col.active{display:flex;animation:fade .26s ease}
+    @keyframes fade{from{opacity:0;transform:translateY(8px)}}
+    .tabbar{display:flex}
+    .bt small{display:none}
+    .bt{font-size:14px}
+    .hdr .pill.mono{display:none}
+    canvas{height:150px}
+    .meters{grid-template-columns:1fr 1fr}
+    .meters .meter:last-child{grid-column:1/-1}
+    input[type=range]{height:9px}
+    input[type=range]::-webkit-slider-thumb{width:24px;height:24px}
+    input[type=range]::-moz-range-thumb{width:24px;height:24px}
+    .ctl{margin:18px 0}
+    .xy{aspect-ratio:16/12}
+    .preset{padding:14px 6px 12px}
+  }
+  @media(max-width:420px){
+    .pgrid{grid-template-columns:repeat(3,1fr);gap:8px}
+    .preset .nm{font-size:10.6px}
+    .hdr{gap:8px}
+    .btn{padding:10px 12px}
+  }
+  @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
 <body>
-<div class="bg-orbs"><div class="orb orb1"></div><div class="orb orb2"></div><div class="orb orb3"></div></div>
+<div class="bgfx"><i></i><i></i><i></i></div>
+<div class="bggrid"></div>
 
-<header>
-  <h1>🎙️ VoiceShift Pro</h1>
-  <p>Chỉnh giọng thông minh theo thời gian thực — tự nhiên, mượt mà, độ trễ cực thấp</p>
-  <div class="live-badge"><span class="live-dot"></span> SẴN SÀNG CHO LIVESTREAM</div>
-</header>
+<!-- ================== SVG ICON SPRITE ================== -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <!-- UI -->
+  <symbol id="i-wave" viewBox="0 0 24 24"><path d="M3 12h2M8 5v14M12 8v8M16 3v18M20 10v4"/></symbol>
+  <symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="2.5" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M8.5 21h7"/></symbol>
+  <symbol id="i-micoff" viewBox="0 0 24 24"><path d="M9 5a3 3 0 0 1 6 0v5m-6 0v.5a3 3 0 0 0 4.6 2.5M5.5 11a6.5 6.5 0 0 0 9.9 5.6M18.5 11v.5M12 17.5V21M8.5 21h7M3.5 3.5l17 17"/></symbol>
+  <symbol id="i-power" viewBox="0 0 24 24"><path d="M12 3v9"/><path d="M6.6 6.6a8 8 0 1 0 10.8 0"/></symbol>
+  <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></symbol>
+  <symbol id="i-plug" viewBox="0 0 24 24"><path d="M9 2v6M15 2v6M6 8h12v3a6 6 0 0 1-12 0zM12 17v5"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></symbol>
+  <symbol id="i-save" viewBox="0 0 24 24"><path d="M4.5 5.5A2 2 0 0 1 6.5 3.5h9L20.5 8.5v10a2 2 0 0 1-2 2h-12a2 2 0 0 1-2-2z"/><path d="M8 3.5v5h7M8 20.5v-6h8v6"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 6.5h16M9.5 6.5V4.5h5v2M6.5 6.5l1 13a1.6 1.6 0 0 0 1.6 1.5h5.8a1.6 1.6 0 0 0 1.6-1.5l1-13M10 10.5v7M14 10.5v7"/></symbol>
+  <symbol id="i-rec" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.6" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-stop" viewBox="0 0 24 24"><rect x="6.5" y="6.5" width="11" height="11" rx="2.5"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3.5v11M7.5 10.5L12 15l4.5-4.5M4.5 19.5h15"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l7.5 3v5.5c0 4.6-3.1 8.2-7.5 9.5-4.4-1.3-7.5-4.9-7.5-9.5V6z"/><path d="M8.5 12.5l2.4 2.4 4.6-5"/></symbol>
+  <symbol id="i-warn" viewBox="0 0 24 24"><path d="M12 4.2 21 19.5H3z"/><path d="M12 10v4M12 17h.01"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5.5M12 8h.01"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M4.5 12.5 9.5 17.5 19.5 6.5"/></symbol>
+  <symbol id="i-keyboard" viewBox="0 0 24 24"><rect x="2.5" y="6" width="19" height="12" rx="2.5"/><path d="M6 10h.01M9.5 10h.01M13 10h.01M16.5 10h.01M8 14h8"/></symbol>
+  <symbol id="i-headphones" viewBox="0 0 24 24"><path d="M4 15v-3a8 8 0 0 1 16 0v3"/><rect x="2.5" y="14" width="4.5" height="6.5" rx="2"/><rect x="17" y="14" width="4.5" height="6.5" rx="2"/></symbol>
+  <symbol id="i-bars" viewBox="0 0 24 24"><path d="M4 20V12M9.3 20V5M14.7 20V9M20 20V14"/></symbol>
+  <symbol id="i-sine" viewBox="0 0 24 24"><path d="M2.5 12c2.5-7 5-7 7.5 0s5 7 7.5 0 3-4 4-4"/></symbol>
+  <symbol id="i-radial" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 6V3M12 21v-3M6 12H3M21 12h-3M7.7 7.7 5.6 5.6M18.4 18.4l-2.1-2.1M16.3 7.7l2.1-2.1M5.6 18.4l2.1-2.1"/></symbol>
+  <symbol id="i-star" viewBox="0 0 24 24"><path d="m12 3.6 2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8L3.5 9.8l5.9-.9z"/></symbol>
+  <symbol id="i-reset" viewBox="0 0 24 24"><path d="M4 5.5v5h5"/><path d="M4.6 10.5a8 8 0 1 1 .5 5"/></symbol>
+  <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13.5a4 4 0 0 0 5.7 0l3-3a4 4 0 1 0-5.7-5.7l-1.3 1.3"/><path d="M14 10.5a4 4 0 0 0-5.7 0l-3 3a4 4 0 1 0 5.7 5.7l1.3-1.3"/></symbol>
+  <symbol id="i-tune" viewBox="0 0 24 24"><path d="M9 18V6l10-2v12"/><circle cx="6.5" cy="18" r="2.6"/><circle cx="16.5" cy="16" r="2.6"/></symbol>
+  <symbol id="i-broadcast" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.2"/><path d="M8.4 8.4a5 5 0 0 0 0 7.2M15.6 15.6a5 5 0 0 0 0-7.2M5.6 5.6a9 9 0 0 0 0 12.8M18.4 18.4a9 9 0 0 0 0-12.8"/></symbol>
 
-<div class="container">
+  <!-- PRESET ICONS -->
+  <symbol id="v-clean" viewBox="0 0 24 24"><rect x="9" y="2.5" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M8.5 21h7"/></symbol>
+  <symbol id="v-baby" viewBox="0 0 24 24"><circle cx="12" cy="13" r="7.5"/><path d="M12 5.5V3.2M9.5 12h.01M14.5 12h.01M9.5 16a4 4 0 0 0 5 0"/></symbol>
+  <symbol id="v-girl" viewBox="0 0 24 24"><circle cx="12" cy="12" r="6"/><path d="M6 9c0-3.5 2.7-6 6-6s6 2.5 6 6"/><circle cx="4.5" cy="13.5" r="2"/><circle cx="19.5" cy="13.5" r="2"/><path d="M10 13h.01M14 13h.01"/></symbol>
+  <symbol id="v-woman" viewBox="0 0 24 24"><path d="M6 12a6 6 0 1 1 12 0"/><path d="M6 11v7.5M18 11v7.5M6 18.5c1.4 1 2.6 1.4 3 1.5M18 18.5c-1.4 1-2.6 1.4-3 1.5"/><path d="M9.8 12h.01M14.2 12h.01M10.4 15.4a3 3 0 0 0 3.2 0"/></symbol>
+  <symbol id="v-soft" viewBox="0 0 24 24"><path d="M12 20.5s-8-4.8-8-10a4.6 4.6 0 0 1 8-3.1 4.6 4.6 0 0 1 8 3.1c0 5.2-8 10-8 10z"/></symbol>
+  <symbol id="v-man" viewBox="0 0 24 24"><path d="M5.5 10.5a6.5 6.5 0 0 1 13 0v2a6.5 6.5 0 0 1-13 0z"/><path d="M5.5 11.5c1.6 1 4 1.5 6.5 1.5s4.9-.5 6.5-1.5"/><path d="M9.5 9.5h.01M14.5 9.5h.01M9.5 15.5a4 4 0 0 0 5 0"/></symbol>
+  <symbol id="v-deep" viewBox="0 0 24 24"><path d="M2.5 9h19M4 9v3.5a3.5 3.5 0 0 0 7 0V9M13 9v3.5a3.5 3.5 0 0 0 7 0V9M11 11h2"/></symbol>
+  <symbol id="v-robot" viewBox="0 0 24 24"><rect x="4" y="7.5" width="16" height="12" rx="3.5"/><path d="M12 7.5V4M12 3.2h.01M2.5 12.5v3M21.5 12.5v3"/><path d="M9 12h.01M15 12h.01M9.5 16h5"/></symbol>
+  <symbol id="v-alien" viewBox="0 0 24 24"><path d="M12 3c4.4 0 7.5 3 7.5 7 0 5.2-4.3 11-7.5 11S4.5 15.2 4.5 10c0-4 3.1-7 7.5-7z"/><path d="M8 10.5c1.6.3 2.6 1.2 2.8 2.6-1.6.2-2.9-.7-2.8-2.6zM16 10.5c-1.6.3-2.6 1.2-2.8 2.6 1.6.2 2.9-.7 2.8-2.6z" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="v-monster" viewBox="0 0 24 24"><path d="M4.5 12a7.5 7.5 0 0 1 15 0v3.5a5 5 0 0 1-5 5h-5a5 5 0 0 1-5-5z"/><path d="M5.5 8 3.5 3.5 7.5 6M18.5 8l2-4.5L16.5 6"/><path d="M9 12h.01M15 12h.01"/><path d="M8.5 16h7l-1.2 2-1.3-1.4-1.3 1.4L10.5 18z"/></symbol>
+  <symbol id="v-chip" viewBox="0 0 24 24"><path d="M6.5 9.5h11c0 5.5-2.6 10-5.5 10s-5.5-4.5-5.5-10z"/><path d="M5.5 7.5a3 3 0 0 1 3-3h7a3 3 0 0 1 3 3z"/><path d="M12 4.5v-2"/></symbol>
+  <symbol id="v-ghost" viewBox="0 0 24 24"><path d="M4.5 20.5V11a7.5 7.5 0 0 1 15 0v9.5l-2.5-2-2.5 2-2.5-2-2.5 2z"/><path d="M9.5 10.5h.01M14.5 10.5h.01"/></symbol>
+  <symbol id="v-radio" viewBox="0 0 24 24"><path d="M12 13.5 8 21h8z"/><circle cx="12" cy="9.5" r="2"/><path d="M8.5 6a5 5 0 0 0 0 7M15.5 13a5 5 0 0 0 0-7M6 3.5a8.5 8.5 0 0 0 0 12M18 15.5a8.5 8.5 0 0 0 0-12"/></symbol>
+  <symbol id="v-phone" viewBox="0 0 24 24"><rect x="6" y="7" width="12" height="14" rx="2.5"/><path d="M15 7V4.5M15 3.4h.01M8.5 10.5h7M9 14h2M13 14h2M9 17.5h2"/></symbol>
+  <symbol id="v-giant" viewBox="0 0 24 24"><path d="M7 21V9.5a5 5 0 0 1 10 0V21z"/><path d="M7 12.5c2.5 1.2 7.5 1.2 10 0"/><path d="M9.8 9h.01M14.2 9h.01M10 15.5h4"/></symbol>
+  <symbol id="v-asmr" viewBox="0 0 24 24"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4 8.5 8.5 0 1 0 20 14.5z"/><path d="M17 3.5v3M15.5 5h3" /></symbol>
+  <symbol id="v-narrator" viewBox="0 0 24 24"><path d="M4 9.5h3.5L13 5v14L7.5 14.5H4z"/><path d="M16.5 9.2a4 4 0 0 1 0 5.6M19 6.8a7.5 7.5 0 0 1 0 10.4"/></symbol>
+  <symbol id="v-choir" viewBox="0 0 24 24"><circle cx="7" cy="8" r="3"/><circle cx="17" cy="8" r="3"/><path d="M2.5 20a4.5 4.5 0 0 1 9 0M12.5 20a4.5 4.5 0 0 1 9 0"/></symbol>
+</svg>
 
-  <!-- MIC + VISUALIZER -->
-  <div class="card mic-panel">
-    <h2>🎤 Microphone</h2>
-    <button class="mic-btn" id="micBtn">🎙️</button>
-    <div class="mic-status" id="micStatus">Nhấn để bật micro</div>
-    <canvas id="viz"></canvas>
-    <div class="meter-wrap"><div class="meter" id="meter"></div></div>
-  </div>
-
-  <!-- DEVICES -->
-  <div class="card">
-    <h2>🔌 Thiết bị & Đầu ra</h2>
-    <label style="font-size:.8rem;color:var(--muted)">🎙️ Nguồn micro</label>
-    <select id="inputSelect"><option>Mặc định</option></select>
-    <label style="font-size:.8rem;color:var(--muted)">🔊 Xuất âm thanh ra (chọn VB-Cable để stream)</label>
-    <select id="outputSelect"><option value="">Loa / Tai nghe mặc định</option></select>
-    <div class="toggle-row"><span>🎧 Nghe thử giọng của mình (Monitor)</span>
-      <label class="switch"><input type="checkbox" id="monitorToggle" checked><span class="track"></span></label></div>
-    <div class="toggle-row"><span>🧹 Khử nhiễu & triệt tiếng vang</span>
-      <label class="switch"><input type="checkbox" id="denoiseToggle" checked><span class="track"></span></label></div>
-    <div class="warn">⚠️ Đeo tai nghe khi bật Monitor để tránh hú/rè. Trang cần chạy trên HTTPS hoặc localhost.</div>
-  </div>
-
-  <!-- PRESETS -->
-  <div class="card full">
-    <h2>✨ Giọng có sẵn (nhấn để đổi ngay khi đang nói)</h2>
-    <div class="presets" id="presetGrid"></div>
-  </div>
-
-  <!-- FINE TUNE -->
-  <div class="card">
-    <h2>🎛️ Tinh chỉnh giọng</h2>
-    <div class="slider-row"><label>Cao độ (Pitch) <b id="vPitch">0 semitone</b></label>
-      <input type="range" id="sPitch" min="-12" max="12" step="0.5" value="0"></div>
-    <div class="slider-row"><label>Độ sáng giọng (Tone) <b id="vTone">100%</b></label>
-      <input type="range" id="sTone" min="20" max="100" value="100"></div>
-    <div class="slider-row"><label>🤖 Hiệu ứng Robot <b id="vRobot">0%</b></label>
-      <input type="range" id="sRobot" min="0" max="100" value="0"></div>
-    <div class="slider-row"><label>👾 Rung giọng (Vibrato) <b id="vVibrato">0%</b></label>
-      <input type="range" id="sVibrato" min="0" max="100" value="0"></div>
-    <div class="slider-row"><label>💥 Biến dạng (Distortion) <b id="vDist">0%</b></label>
-      <input type="range" id="sDist" min="0" max="100" value="0"></div>
-  </div>
-
-  <!-- SPACE -->
-  <div class="card">
-    <h2>🌌 Không gian & Âm lượng</h2>
-    <div class="slider-row"><label>🔁 Vang vọng (Echo) <b id="vEcho">0%</b></label>
-      <input type="range" id="sEcho" min="0" max="100" value="0"></div>
-    <div class="slider-row"><label>🏛️ Reverb (Phòng ảo) <b id="vReverb">0%</b></label>
-      <input type="range" id="sReverb" min="0" max="100" value="0"></div>
-    <div class="slider-row"><label>🔊 Âm lượng đầu ra <b id="vGain">100%</b></label>
-      <input type="range" id="sGain" min="0" max="200" value="100"></div>
-    <button id="resetBtn" style="width:100%;padding:11px;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,.06);color:var(--text);cursor:pointer;font-weight:600;margin-top:4px;">↺ Đặt lại mặc định</button>
-  </div>
-
-  <!-- STREAM GUIDE -->
-  <div class="card full">
-    <h2>📡 Hướng dẫn dùng khi Livestream (OBS / Discord / TikTok Live)</h2>
-    <div class="guide">
-      <b>Cách đưa giọng đã chỉnh vào stream:</b>
-      <ol>
-        <li>Tải & cài <code>VB-Audio Virtual Cable</code> (miễn phí) — tạo micro ảo trên máy tính.</li>
-        <li>Bật micro trên trang này → ở mục <b>"Xuất âm thanh ra"</b> chọn <code>CABLE Input (VB-Audio)</code>.</li>
-        <li>Trong OBS / Discord / phần mềm stream: chọn nguồn micro là <code>CABLE Output (VB-Audio)</code>.</li>
-        <li>Nói vào micro thật → giọng đã chỉnh sẽ phát thẳng vào stream theo thời gian thực! 🎉</li>
-      </ol>
-      <div class="warn">💡 Mẹo: Giọng "Con gái" / "Em bé" nghe tự nhiên nhất khi bạn nói nhẹ nhàng, không gằn giọng. Kết hợp thêm chút Reverb (10–20%) giúp giọng mượt và "thật" hơn.</div>
-    </div>
-  </div>
-</div>
-
-<footer>VoiceShift Pro • Xử lý 100% trên trình duyệt, không gửi dữ liệu âm thanh đi đâu 🔒</footer>
-
-<script>
-/* ============ AUDIO WORKLET: Pitch Shifter (granular, 2 đầu đọc crossfade) ============ */
-const workletCode = `
-class PitchShifter extends AudioWorkletProcessor {
-  constructor(){ super();
-    this.N = 8192; this.buf = new Float32Array(this.N);
-    this.w = 0; this.phase = 0; this.ratio = 1; this.grain = 2048;
-    this.port.onmessage = e => { this.ratio = Math.max(0.25, Math.min(4, e.data)); };
+<!-- ================== AUDIO WORKLET ================== -->
+<script id="worklet-src" type="text/worklet">
+class FFT{
+  constructor(n){
+    this.n=n; this.levels=Math.round(Math.log2(n));
+    this.cos=new Float32Array(n/2); this.sin=new Float32Array(n/2);
+    for(let i=0;i<n/2;i++){ this.cos[i]=Math.cos(2*Math.PI*i/n); this.sin[i]=Math.sin(2*Math.PI*i/n); }
+    this.rev=new Uint32Array(n);
+    for(let i=0;i<n;i++){ let x=i,r=0; for(let j=0;j<this.levels;j++){ r=(r<<1)|(x&1); x>>=1; } this.rev[i]=r; }
   }
-  process(inputs, outputs){
-    const inp = inputs[0][0], out = outputs[0][0];
-    if(!inp) return true;
-    const N = this.N, g = this.grain;
-    for(let i=0;i<inp.length;i++){
-      this.buf[this.w] = inp[i];
-      this.phase += (1 - this.ratio) / g;
-      if(this.phase >= 1) this.phase -= 1;
-      if(this.phase < 0) this.phase += 1;
-      let o = 0;
-      for(let h=0; h<2; h++){
-        let ph = this.phase + h*0.5; if(ph>=1) ph-=1;
-        const delay = ph * g;
-        let rp = this.w - delay; if(rp<0) rp+=N;
-        const i0 = Math.floor(rp)%N, i1=(i0+1)%N, fr = rp-Math.floor(rp);
-        const s = this.buf[i0]*(1-fr) + this.buf[i1]*fr;
-        const win = 0.5 - 0.5*Math.cos(2*Math.PI*ph);
-        o += s*win;
+  transform(re,im,inv){
+    const n=this.n, rev=this.rev;
+    for(let i=0;i<n;i++){ const j=rev[i]; if(j>i){ let t=re[i];re[i]=re[j];re[j]=t; t=im[i];im[i]=im[j];im[j]=t; } }
+    for(let size=2;size<=n;size*=2){
+      const half=size>>1, step=n/size;
+      for(let i=0;i<n;i+=size){
+        for(let j=i,k=0;j<i+half;j++,k+=step){
+          const c=this.cos[k], s=inv? this.sin[k] : -this.sin[k], l=j+half;
+          const tr=re[l]*c-im[l]*s, ti=re[l]*s+im[l]*c;
+          re[l]=re[j]-tr; im[l]=im[j]-ti; re[j]+=tr; im[j]+=ti;
+        }
       }
-      out[i] = o;
-      this.w = (this.w+1)%N;
+    }
+    if(inv){ for(let i=0;i<n;i++){ re[i]/=n; im[i]/=n; } }
+  }
+}
+
+const N=1024, HOP=256, OSAMP=N/HOP, HALF=N/2;
+
+/* Phase vocoder: dịch cao độ và formant độc lập -> giọng tự nhiên */
+class VoxProcessor extends AudioWorkletProcessor{
+  static get parameterDescriptors(){
+    return [
+      {name:'pitch',   defaultValue:1, minValue:0.25, maxValue:4, automationRate:'k-rate'},
+      {name:'formant', defaultValue:1, minValue:0.35, maxValue:3, automationRate:'k-rate'},
+      {name:'bypass',  defaultValue:0, minValue:0,    maxValue:1, automationRate:'k-rate'}
+    ];
+  }
+  constructor(){
+    super();
+    this.fft=new FFT(N);
+    this.inFIFO=new Float32Array(N);
+    this.outFIFO=new Float32Array(N);
+    this.outAccum=new Float32Array(2*N);
+    this.re=new Float32Array(N); this.im=new Float32Array(N);
+    this.cr=new Float32Array(N); this.ci=new Float32Array(N);
+    this.lastPhase=new Float32Array(HALF+1);
+    this.sumPhase=new Float32Array(HALF+1);
+    this.anaMag=new Float32Array(HALF+1);
+    this.anaFreq=new Float32Array(HALF+1);
+    this.synMag=new Float32Array(HALF+1);
+    this.synFreq=new Float32Array(HALF+1);
+    this.bestMag=new Float32Array(HALF+1);
+    this.srcBin=new Int32Array(HALF+1);
+    this.env=new Float32Array(HALF+1).fill(1);
+    this.peaks=new Int32Array(HALF+1);
+    this.win=new Float32Array(N);
+    for(let k=0;k<N;k++) this.win[k]=0.5-0.5*Math.cos(2*Math.PI*k/N);
+    this.rover=N-HOP;
+    this.lock=true;
+    this.keepFormant=true;
+    this.Q=Math.round(N*0.032);
+    this.port.onmessage=e=>{
+      const d=e.data;
+      if(d.lock!==undefined) this.lock=d.lock;
+      if(d.keepFormant!==undefined) this.keepFormant=d.keepFormant;
+    };
+  }
+  frame(pitch,formant){
+    const re=this.re, im=this.im, win=this.win, fpb=sampleRate/N, expct=2*Math.PI*HOP/N;
+    for(let k=0;k<N;k++){ re[k]=this.inFIFO[k]*win[k]; im[k]=0; }
+    this.fft.transform(re,im,false);
+
+    for(let k=0;k<=HALF;k++){
+      const r=re[k], i=im[k];
+      const mag=2*Math.sqrt(r*r+i*i), ph=Math.atan2(i,r);
+      let t=ph-this.lastPhase[k];
+      this.lastPhase[k]=ph;
+      t-=k*expct;
+      t-=2*Math.PI*Math.round(t/(2*Math.PI));
+      t=OSAMP*t/(2*Math.PI);
+      this.anaMag[k]=mag;
+      this.anaFreq[k]=k*fpb+t*fpb;
+    }
+
+    if(this.keepFormant){
+      const cr=this.cr, ci=this.ci;
+      for(let k=0;k<=HALF;k++){
+        const v=Math.log(this.anaMag[k]+1e-7);
+        cr[k]=v; if(k>0&&k<HALF) cr[N-k]=v;
+      }
+      ci.fill(0);
+      this.fft.transform(cr,ci,false);
+      for(let k=this.Q;k<=N-this.Q;k++){ cr[k]=0; ci[k]=0; }
+      this.fft.transform(cr,ci,true);
+      for(let k=0;k<=HALF;k++) this.env[k]=Math.exp(cr[k])+1e-9;
+    }else{
+      this.env.fill(1);
+    }
+
+    const sm=this.synMag, sf=this.synFreq, bm=this.bestMag, sb=this.srcBin;
+    sm.fill(0); sf.fill(0); bm.fill(0); sb.fill(0);
+    for(let k=0;k<=HALF;k++){
+      const idx=Math.round(k*pitch);
+      if(idx<0||idx>HALF) continue;
+      const m=this.anaMag[k]/this.env[k];
+      sm[idx]+=m; sf[idx]=this.anaFreq[k]*pitch;
+      if(m>bm[idx]){ bm[idx]=m; sb[idx]=k; }
+    }
+
+    for(let k=0;k<=HALF;k++){
+      if(sm[k]===0) continue;
+      const fk=k/formant, i0=Math.floor(fk), fr=fk-i0;
+      let e;
+      if(i0>=HALF) e=this.env[HALF];
+      else e=this.env[i0]*(1-fr)+this.env[i0+1]*fr;
+      sm[k]*=e;
+    }
+
+    for(let k=0;k<=HALF;k++){
+      let t=sf[k]; t-=k*fpb; t/=fpb; t=2*Math.PI*t/OSAMP; t+=k*expct;
+      this.sumPhase[k]+=t;
+    }
+
+    if(this.lock){
+      const pk=this.peaks; let np=0;
+      for(let k=2;k<HALF-1;k++){
+        const m=sm[k];
+        if(m>1e-7&&m>sm[k-1]&&m>sm[k+1]&&m>sm[k-2]&&m>sm[k+2]) pk[np++]=k;
+      }
+      let start=0;
+      for(let pi=0;pi<np;pi++){
+        const p=pk[pi];
+        const end=(pi===np-1)?HALF:((p+pk[pi+1])>>1);
+        const base=this.sumPhase[p], refA=this.lastPhase[sb[p]];
+        for(let k=start;k<=end;k++){
+          if(k===p||sm[k]===0) continue;
+          this.sumPhase[k]=base+(this.lastPhase[sb[k]]-refA);
+        }
+        start=end+1;
+      }
+    }
+
+    re.fill(0); im.fill(0);
+    for(let k=0;k<=HALF;k++){
+      const m=sm[k], p=this.sumPhase[k];
+      const rr=m*Math.cos(p), ii=m*Math.sin(p);
+      re[k]=rr; im[k]=ii;
+      if(k>0&&k<HALF){ re[N-k]=rr; im[N-k]=-ii; }
+    }
+    this.fft.transform(re,im,true);
+
+    const g=4/OSAMP;
+    for(let k=0;k<N;k++) this.outAccum[k]+=g*win[k]*re[k];
+    for(let k=0;k<HOP;k++) this.outFIFO[k]=this.outAccum[k];
+    this.outAccum.copyWithin(0,HOP);
+    this.outAccum.fill(0,2*N-HOP);
+    this.inFIFO.copyWithin(0,HOP,N);
+  }
+  process(inputs,outputs,params){
+    const inp=inputs[0]&&inputs[0][0], out=outputs[0][0];
+    if(!out) return true;
+    if(!inp){ out.fill(0); return true; }
+    if(params.bypass[0]>0.5){ out.set(inp); return true; }
+    const pitch=Math.min(4,Math.max(0.25,params.pitch[0])), formant=params.formant[0];
+    const lat=N-HOP;
+    for(let n=0;n<inp.length;n++){
+      this.inFIFO[this.rover]=inp[n];
+      out[n]=this.outFIFO[this.rover-lat];
+      this.rover++;
+      if(this.rover>=N){ this.rover=lat; this.frame(pitch,formant); }
     }
     return true;
   }
 }
-registerProcessor('pitch-shifter', PitchShifter);
-`;
+registerProcessor('vox-processor',VoxProcessor);
 
-/* ============ STATE ============ */
-const P = { pitch:0, tone:100, robot:0, vibrato:0, dist:0, echo:0, reverb:0, gain:100 };
-const PRESETS = [
-  { name:'Giọng gốc', ico:'🙂', p:{pitch:0,  tone:100, robot:0,  vibrato:0,  dist:0,  echo:0,  reverb:0,  gain:100} },
-  { name:'Em bé',     ico:'👶', p:{pitch:7,  tone:90,  robot:0,  vibrato:8,  dist:0,  echo:0,  reverb:12, gain:105} },
-  { name:'Con gái',   ico:'👧', p:{pitch:4,  tone:95,  robot:0,  vibrato:5,  dist:0,  echo:0,  reverb:15, gain:105} },
-  { name:'Trầm ấm',   ico:'🧔', p:{pitch:-5, tone:70,  robot:0,  vibrato:0,  dist:0,  echo:0,  reverb:18, gain:110} },
-  { name:'Robot',     ico:'🤖', p:{pitch:0,  tone:80,  robot:85, vibrato:0,  dist:10, echo:5,  reverb:5,  gain:100} },
-  { name:'Ngoài hành tinh', ico:'👽', p:{pitch:5, tone:85, robot:35, vibrato:55, dist:0, echo:15, reverb:25, gain:100} },
-  { name:'Quái vật',  ico:'👹', p:{pitch:-8, tone:55,  robot:0,  vibrato:15, dist:45, echo:10, reverb:30, gain:115} },
-  { name:'Sóc chuột', ico:'🐿️', p:{pitch:10, tone:100, robot:0,  vibrato:10, dist:0,  echo:0,  reverb:8,  gain:100} },
-  { name:'Heli',      ico:'🎈', p:{pitch:8,  tone:100, robot:0,  vibrato:0,  dist:0,  echo:0,  reverb:5,  gain:100} },
-  { name:'Vang hang động', ico:'🕳️', p:{pitch:0, tone:85, robot:0, vibrato:0, dist:0, echo:55, reverb:45, gain:100} },
-  { name:'Ma ám',     ico:'👻', p:{pitch:-3, tone:60,  robot:0,  vibrato:35, dist:5,  echo:35, reverb:60, gain:105} },
-  { name:'Đài phát thanh', ico:'📻', p:{pitch:0, tone:45, robot:15, vibrato:0, dist:20, echo:0, reverb:0, gain:110} },
+/* Noise gate mượt */
+class GateProcessor extends AudioWorkletProcessor{
+  static get parameterDescriptors(){
+    return [
+      {name:'threshold',defaultValue:-52,minValue:-90,maxValue:0,automationRate:'k-rate'},
+      {name:'amount',   defaultValue:1,  minValue:0,  maxValue:1,automationRate:'k-rate'}
+    ];
+  }
+  constructor(){ super(); this.env=0; this.g=1; }
+  process(inputs,outputs,p){
+    const x=inputs[0]&&inputs[0][0], y=outputs[0][0];
+    if(!y) return true;
+    if(!x){ y.fill(0); return true; }
+    const th=Math.pow(10,p.threshold[0]/20), amt=p.amount[0];
+    const atk=Math.exp(-1/(0.003*sampleRate)), rel=Math.exp(-1/(0.15*sampleRate));
+    const floor=1-amt;
+    for(let n=0;n<x.length;n++){
+      const a=Math.abs(x[n]);
+      this.env = a>this.env ? atk*this.env+(1-atk)*a : rel*this.env+(1-rel)*a;
+      const target = this.env>th ? 1 : floor;
+      this.g += (target-this.g)*(target>this.g?0.02:0.0009);
+      y[n]=x[n]*this.g;
+    }
+    return true;
+  }
+}
+registerProcessor('gate-processor',GateProcessor);
+
+/* Bitcrusher */
+class CrushProcessor extends AudioWorkletProcessor{
+  static get parameterDescriptors(){
+    return [
+      {name:'bits',   defaultValue:16,minValue:2,maxValue:16,automationRate:'k-rate'},
+      {name:'reduce', defaultValue:1, minValue:1,maxValue:24,automationRate:'k-rate'},
+      {name:'mix',    defaultValue:0, minValue:0,maxValue:1, automationRate:'k-rate'}
+    ];
+  }
+  constructor(){ super(); this.ph=0; this.last=0; }
+  process(inputs,outputs,p){
+    const x=inputs[0]&&inputs[0][0], y=outputs[0][0];
+    if(!y) return true;
+    if(!x){ y.fill(0); return true; }
+    const step=Math.pow(0.5,p.bits[0]-1), red=p.reduce[0], mix=p.mix[0];
+    for(let n=0;n<x.length;n++){
+      this.ph+=1;
+      if(this.ph>=red){ this.ph-=red; this.last=step*Math.floor(x[n]/step+0.5); }
+      y[n]=x[n]*(1-mix)+this.last*mix;
+    }
+    return true;
+  }
+}
+registerProcessor('crush-processor',CrushProcessor);
+</script>
+
+<header class="hdr">
+  <div class="brand">
+    <span class="mark"><svg class="ic" viewBox="0 0 24 24"><use href="#i-wave"/></svg></span>
+    <div class="bt">Vox<span>Morph</span> Studio<small>Đổi giọng thời gian thực cho streamer</small></div>
+  </div>
+  <div class="sp"></div>
+  <span class="pill"><i class="led" id="led"></i><span id="stat">Chưa bật micro</span></span>
+  <span class="pill mono" id="latPill">— ms</span>
+  <button class="btn sq" id="muteBtn" title="Tắt tiếng mic (M)" aria-label="Tắt tiếng mic">
+    <svg class="ic" viewBox="0 0 24 24"><use href="#i-mic" id="muteIcon"/></svg>
+  </button>
+  <button class="btn primary" id="power">
+    <svg class="ic" viewBox="0 0 24 24"><use href="#i-power"/></svg><span id="powerTxt">Bật micro</span>
+  </button>
+</header>
+
+<main class="app">
+
+  <!-- ============ CỘT TRÁI ============ -->
+  <div class="col left active" id="p-voice">
+    <section class="card">
+      <div class="ch"><svg class="ic" viewBox="0 0 24 24"><use href="#i-tune"/></svg><h2>Kho giọng</h2></div>
+      <p class="hint">Bấm phím <b>1–9</b>, <b>0</b> để đổi giọng ngay giữa buổi live mà không cần rời tay khỏi game.</p>
+      <div class="search">
+        <svg class="ic" viewBox="0 0 24 24"><use href="#i-search"/></svg>
+        <input id="q" type="search" placeholder="Tìm giọng: em bé, robot, ma…" autocomplete="off">
+      </div>
+      <div class="pgrid" id="presets"></div>
+    </section>
+
+    <section class="card">
+      <div class="ch"><svg class="ic" viewBox="0 0 24 24"><use href="#i-star"/></svg><h2>Giọng của tôi</h2></div>
+      <p class="hint">Lưu thiết lập đang chỉnh thành preset riêng, lưu ngay trong máy bạn.</p>
+      <div class="flex">
+        <button class="btn" id="saveP"><svg class="ic sm" viewBox="0 0 24 24"><use href="#i-save"/></svg>Lưu giọng</button>
+        <button class="btn danger" id="clearP"><svg class="ic sm" viewBox="0 0 24 24"><use href="#i-trash"/></svg>Xóa hết</button>
+      </div>
+      <div class="pgrid" id="userPresets" style="margin-top:12px"></div>
+    </section>
+  </div>
+
+  <!-- ============ CỘT GIỮA ============ -->
+  <div class="col mid active" id="p-tune">
+    <section class="card">
+      <div class="ch">
+        <svg class="ic" viewBox="0 0 24 24"><use href="#i-broadcast"/></svg><h2>Phòng thu trực tiếp</h2>
+        <div class="sp"></div>
+        <button class="btn sq ghost" id="resetBtn" title="Đặt lại toàn bộ">
+          <svg class="ic sm" viewBox="0 0 24 24"><use href="#i-reset"/></svg>
+        </button>
+      </div>
+      <div class="viz">
+        <canvas id="cv"></canvas>
+        <span class="chip" id="vizTag">PHỔ SAU XỬ LÝ</span>
+        <span class="note" id="noteTag">—</span>
+      </div>
+      <div class="seg" style="margin-top:11px" id="vizSeg">
+        <button class="on" data-v="bars"><svg class="ic sm" viewBox="0 0 24 24"><use href="#i-bars"/></svg>Phổ</button>
+        <button data-v="wave"><svg class="ic sm" viewBox="0 0 24 24"><use href="#i-sine"/></svg>Sóng</button>
+        <button data-v="radial"><svg class="ic sm" viewBox="0 0 24 24"><use href="#i-radial"/></svg>Vòng</button>
+      </div>
+      <div class="meters">
+        <div class="meter"><small>VÀO (MIC)</small><div class="bar"><i id="mIn"></i></div></div>
+        <div class="meter"><small>RA (ĐÃ ĐỔI)</small><div class="bar"><i id="mOut"></i></div></div>
+        <div class="meter"><small>NÉN ĐỘNG</small><div class="bar gr"><i id="mGr"></i></div></div>
+      </div>
+
+      <div class="xy" id="xy">
+        <span class="ax h"></span><span class="ax v"></span>
+        <span class="cap b">Cao độ →</span><span class="cap l">Formant →</span>
+        <span class="hnd" id="xyH"></span>
+      </div>
+
+      <div class="stat2">
+        <div class="kc">
+          <div class="t"><svg class="ic sm" viewBox="0 0 24 24"><use href="#i-tune"/></svg>Cao độ</div>
+          <div class="v"><span id="kPitch">0.0</span><i> st</i></div>
+        </div>
+        <div class="kc">
+          <div class="t"><svg class="ic sm" viewBox="0 0 24 24"><use href="#i-sine"/></svg>Formant</div>
+          <div class="v"><span id="kFormant">0.0</span><i> st</i></div>
+        </div>
+      </div>
+      <div id="c-main"></div>
+      <div class="sw" style="border-top:1px solid rgba(255,255,255,.05);margin-top:6px">
+        <div class="tx">Khóa formant theo cao độ
+          <small>Formant tự chạy theo 35% cao độ — cách nhanh nhất để có giọng thật</small></div>
+        <div class="tg on" id="tLink" role="switch" tabindex="0"></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="ch"><svg class="ic" viewBox="0 0 24 24"><use href="#i-sliders"/></svg><h2>Bàn trộn</h2></div>
+      <div class="seg" id="mixSeg" style="margin:10px 0 4px">
+        <button class="on" data-m="fx">Hiệu ứng</button>
+        <button data-m="tone">Âm sắc</button>
+        <button data-m="proc">Xử lý</button>
+      </div>
+      <div id="c-fx"></div>
+      <div id="c-tone" hidden></div>
+      <div id="c-proc" hidden>
+        <div class="sw"><div class="tx">Giữ bao formant (giọng người thật)
+          <small>Tắt đi sẽ ra chất “máy móc” hơn</small></div><div class="tg on" id="tKeep" role="switch" tabindex="0"></div></div>
+        <div class="sw"><div class="tx">Khóa pha chống rè
+          <small>Giảm tiếng lạo xạo kim loại của bộ đổi giọng</small></div><div class="tg on" id="tLock" role="switch" tabindex="0"></div></div>
+        <div class="sw"><div class="tx">Bỏ qua xử lý (A/B so sánh)
+          <small>Phím tắt: B</small></div><div class="tg" id="tBypass" role="switch" tabindex="0"></div></div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ============ CỘT PHẢI ============ -->
+  <div class="col right" id="p-dev">
+    <section class="card">
+      <div class="ch"><svg class="ic" viewBox="0 0 24 24"><use href="#i-plug"/></svg><h2>Thiết bị</h2></div>
+      <div class="ctl"><div class="lab"><span>Micro đầu vào</span></div><select id="inDev"></select></div>
+      <div class="ctl"><div class="lab"><span>Đầu ra (chọn Virtual Cable khi live)</span></div><select id="outDev"></select></div>
+      <div id="c-dev"></div>
+      <div class="divider"></div>
+      <div class="sw"><div class="tx">Nghe lại trong tai nghe
+        <small>Chỉ bật khi đang đeo tai nghe, tránh hú rít</small></div><div class="tg" id="tMon" role="switch" tabindex="0"></div></div>
+      <div class="sw"><div class="tx">Khử ồn &amp; khử vọng của hệ thống
+        <small>Nên bật nếu dùng mic laptop hoặc mic điện thoại</small></div><div class="tg on" id="tDsp" role="switch" tabindex="0"></div></div>
+    </section>
+
+    <section class="card">
+      <div class="ch"><svg class="ic" viewBox="0 0 24 24"><use href="#i-broadcast"/></svg><h2>Chế độ Live Stream</h2></div>
+      <p class="hint">Giọng đã đổi được xuất ra một luồng audio riêng để OBS / Streamlabs / Discord bắt được.</p>
+      <div class="steps">
+        <div class="step"><em></em><div>Cài cáp âm thanh ảo miễn phí: <code>VB-Audio Virtual Cable</code> (Windows) hoặc <code>BlackHole</code> (macOS).</div></div>
+        <div class="step"><em></em><div>Ở ô “Đầu ra” phía trên, chọn <code>CABLE Input</code> / <code>BlackHole 2ch</code>.</div></div>
+        <div class="step"><em></em><div>Trong OBS thêm nguồn <b>Audio Input Capture</b> → chọn <code>CABLE Output</code>, rồi tắt mic gốc để không lọt giọng thật.</div></div>
+      </div>
+      <div class="warnbox">
+        <svg class="ic sm" viewBox="0 0 24 24"><use href="#i-warn"/></svg>
+        <div>Trên điện thoại, trình duyệt không cho chọn thiết bị ra. Hãy để máy phát loa ngoài cạnh mic của app live, hoặc stream từ máy tính để có chất lượng tốt nhất.</div>
+      </div>
+      <div class="flex" style="margin-top:12px">
+        <button class="btn" id="rec"><svg class="ic sm" viewBox="0 0 24 24"><use href="#i-rec"/></svg><span id="recTxt">Ghi âm thử</span></button>
+        <button class="btn danger" id="panic"><svg class="ic sm" viewBox="0 0 24 24"><use href="#i-stop"/></svg>Tắt khẩn cấp</button>
+      </div>
+      <audio id="player" controls style="display:none"></audio>
+      <a id="dl" class="btn wide" style="display:none;margin-top:10px">
+        <svg class="ic sm" viewBox="0 0 24 24"><use href="#i-download"/></svg>Tải file ghi âm</a>
+    </section>
+
+    <section class="card">
+      <div class="ch"><svg class="ic" viewBox="0 0 24 24"><use href="#i-keyboard"/></svg><h2>Phím tắt</h2></div>
+      <div class="keys" style="margin-top:10px">
+        <span><kbd>1</kbd>–<kbd>0</kbd> đổi giọng</span>
+        <span><kbd>B</kbd> bật/tắt xử lý</span>
+        <span><kbd>M</kbd> tắt tiếng mic</span>
+        <span><kbd>R</kbd> ghi âm</span>
+        <span><kbd>Esc</kbd> tắt khẩn cấp</span>
+        <span><kbd>↑</kbd><kbd>↓</kbd> cao độ</span>
+        <span><kbd>←</kbd><kbd>→</kbd> formant</span>
+      </div>
+      <div class="divider"></div>
+      <p class="note-box" style="display:flex;gap:9px">
+        <svg class="ic sm" viewBox="0 0 24 24" style="color:var(--a1);margin-top:2px"><use href="#i-shield"/></svg>
+        <span>Toàn bộ xử lý chạy ngay trong trình duyệt. Không có âm thanh nào được gửi lên máy chủ.</span>
+      </p>
+    </section>
+  </div>
+</main>
+
+<nav class="tabbar">
+  <button class="on" data-t="p-voice"><svg class="ic" viewBox="0 0 24 24"><use href="#i-tune"/></svg>Giọng</button>
+  <button data-t="p-tune"><svg class="ic" viewBox="0 0 24 24"><use href="#i-sliders"/></svg>Chỉnh</button>
+  <button data-t="p-dev"><svg class="ic" viewBox="0 0 24 24"><use href="#i-plug"/></svg>Thiết bị</button>
+</nav>
+
+<div class="toasts" id="toasts"></div>
+
+<script>
+/* ================== HẰNG SỐ & DỮ LIỆU ================== */
+const $=id=>document.getElementById(id);
+const icon=(n,c='ic')=>`<svg class="${c}" viewBox="0 0 24 24"><use href="#${n}"/></svg>`;
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const st2r=s=>Math.pow(2,s/12);
+const dbg=d=>Math.pow(10,d/20);
+
+/* Định nghĩa toàn bộ núm chỉnh -> HTML được sinh tự động */
+const CTRLS=[
+  {g:'main',id:'pitch',   nm:'Cao độ',                  min:-14,max:14,step:.5, u:' st', d:1},
+  {g:'main',id:'formant', nm:'Formant (khoang giọng)',  min:-10,max:10,step:.5, u:' st', d:1},
+  {g:'main',id:'vibrato', nm:'Rung giọng (Vibrato)',    min:0,max:100,step:1,   u:'%'},
+  {g:'main',id:'vibRate', nm:'Tốc độ rung',             min:2,max:9,step:.1,    u:' Hz', d:1},
+
+  {g:'fx',id:'reverb',  nm:'Vang phòng (Reverb)',      min:0,max:100,step:1,u:'%'},
+  {g:'fx',id:'delay',   nm:'Vọng (Echo / Delay)',      min:0,max:100,step:1,u:'%'},
+  {g:'fx',id:'chorus',  nm:'Dày giọng (Chorus)',       min:0,max:100,step:1,u:'%'},
+  {g:'fx',id:'drive',   nm:'Méo tiếng (Drive)',        min:0,max:100,step:1,u:'%'},
+  {g:'fx',id:'ring',    nm:'Kim loại / Robot (Ring)',  min:0,max:100,step:1,u:'%'},
+  {g:'fx',id:'ringFreq',nm:'Tần số Ring Mod',          min:20,max:400,step:1,u:' Hz'},
+  {g:'fx',id:'crush',   nm:'Vỡ tiếng số (Bitcrush)',   min:0,max:100,step:1,u:'%'},
+  {g:'fx',id:'phone',   nm:'Bộ đàm / Điện thoại',      min:0,max:100,step:1,u:'%'},
+
+  {g:'tone',id:'bass',    nm:'Ấm (Bass 180 Hz)',       min:-12,max:12,step:.5,u:' dB',d:1},
+  {g:'tone',id:'presence',nm:'Rõ lời (Presence 3 kHz)',min:-12,max:12,step:.5,u:' dB',d:1},
+  {g:'tone',id:'air',     nm:'Sáng (Air 9 kHz)',       min:-12,max:12,step:.5,u:' dB',d:1},
+
+  {g:'proc',id:'gate',nm:'Ngưỡng Noise Gate',min:-90,max:-10,step:1,u:' dB'},
+  {g:'proc',id:'comp',nm:'Nén động (Compressor)',min:0,max:100,step:1,u:'%'},
+
+  {g:'dev',id:'gain',  nm:'Âm lượng vào', min:-12,max:18,step:.5,u:' dB',d:1},
+  {g:'dev',id:'master',nm:'Âm lượng ra',  min:-24,max:12,step:.5,u:' dB',d:1}
 ];
 
-let ctx=null, running=false, stream=null;
-let N = {}; // nodes
-let outAudio = new Audio(); outAudio.autoplay = true;
+/* Giá trị gốc cho preset (không đụng tới gain/master/gate/comp của người dùng) */
+const BASE={pitch:0,formant:0,vibrato:0,vibRate:5.5,reverb:0,delay:0,chorus:0,drive:0,
+  ring:0,ringFreq:60,crush:0,phone:0,bass:0,presence:0,air:0,keepFormant:true,lock:true};
 
-/* ============ HELPERS ============ */
-function dryWet(ctx, wetIn, wetOut){
-  const input=ctx.createGain(), output=ctx.createGain(), dry=ctx.createGain(), wet=ctx.createGain();
-  input.connect(dry); dry.connect(output);
-  input.connect(wetIn); wetOut.connect(wet); wet.connect(output);
-  return { input, output, setMix(m){ const t=ctx.currentTime; dry.gain.setTargetAtTime(1-m,t,.03); wet.gain.setTargetAtTime(m,t,.03); } };
+const PRESETS=[
+ {id:'clean',  ic:'v-clean',  nm:'Tự nhiên (sạch)', tag:'sach tu nhien goc', p:{presence:2,air:1.5,bass:1}},
+ {id:'baby',   ic:'v-baby',   nm:'Em bé',           tag:'em be baby tre con', p:{pitch:7.5,formant:6,presence:3,air:2.5,bass:-3}},
+ {id:'girl',   ic:'v-girl',   nm:'Bé gái',          tag:'be gai loli', p:{pitch:6,formant:4.5,presence:2.5,air:2,bass:-2}},
+ {id:'woman',  ic:'v-woman',  nm:'Con gái',         tag:'con gai nu female', p:{pitch:4.5,formant:3.5,presence:2,air:2,bass:-1}},
+ {id:'soft',   ic:'v-soft',   nm:'Nữ dịu dàng',     tag:'nu diu dang soft', p:{pitch:3.5,formant:3,air:3,reverb:14,chorus:10,vibrato:12,vibRate:5.2}},
+ {id:'man',    ic:'v-man',    nm:'Nam trầm ấm',     tag:'nam tram am male', p:{pitch:-4,formant:-2.5,bass:4,presence:2}},
+ {id:'deep',   ic:'v-deep',   nm:'Trầm bí ẩn',      tag:'tram bi an deep', p:{pitch:-8,formant:-5,bass:5,drive:12,reverb:20}},
+ {id:'robot',  ic:'v-robot',  nm:'Robot',           tag:'robot may moc', p:{ring:60,ringFreq:78,crush:38,presence:5,bass:-4,delay:8,keepFormant:false}},
+ {id:'alien',  ic:'v-alien',  nm:'Người ngoài hành tinh', tag:'alien nguoi ngoai hanh tinh ufo', p:{pitch:5,formant:-4,ring:32,ringFreq:140,chorus:55,reverb:38,air:3}},
+ {id:'monster',ic:'v-monster',nm:'Quái vật',        tag:'quai vat monster ac quy', p:{pitch:-11,formant:-6.5,drive:48,ring:14,ringFreq:33,bass:5,reverb:22}},
+ {id:'chip',   ic:'v-chip',   nm:'Sóc chuột',       tag:'soc chuot chipmunk', p:{pitch:10,formant:8,presence:3}},
+ {id:'ghost',  ic:'v-ghost',  nm:'Ma / vong hồn',   tag:'ma ghost vong hon kinh di', p:{pitch:-2.5,formant:-1.5,chorus:65,reverb:62,delay:34,air:2,vibrato:18}},
+ {id:'radio',  ic:'v-radio',  nm:'Phát thanh viên', tag:'radio phat thanh mc', p:{pitch:-1.5,formant:-1,bass:5,presence:4.5,drive:10,air:1}},
+ {id:'phone',  ic:'v-phone',  nm:'Bộ đàm',          tag:'bo dam dien thoai phone', p:{phone:88,drive:22,presence:4}},
+ {id:'giant',  ic:'v-giant',  nm:'Người khổng lồ',  tag:'khong lo giant titan', p:{pitch:-6,formant:-4,reverb:55,delay:18,bass:6}},
+ {id:'asmr',   ic:'v-asmr',   nm:'Thì thầm ASMR',   tag:'asmr thi tham whisper', p:{pitch:1,formant:1.5,air:5,presence:2,reverb:18}},
+ {id:'narr',   ic:'v-narrator',nm:'Thuyết minh phim',tag:'thuyet minh narrator phim', p:{pitch:-3,formant:-2,bass:5.5,presence:5,air:1.5,reverb:12,drive:8}},
+ {id:'choir',  ic:'v-choir',  nm:'Song ca (Chorus)',tag:'song ca choir hop xuong', p:{formant:1,chorus:88,reverb:34,air:2,vibrato:8}}
+];
+
+const state=Object.assign({},BASE,PRESETS[0].p,{
+  gate:-52,comp:45,gain:0,master:0,
+  monitor:false,dsp:true,bypass:false,mute:false,link:true,preset:'clean',viz:'bars'
+});
+
+/* ================== TOAST ================== */
+let toastT;
+function toast(msg,kind='info'){
+  const el=document.createElement('div');
+  el.className='toast '+kind;
+  el.innerHTML=icon(kind==='ok'?'i-check':kind==='bad'?'i-warn':'i-info','ic sm')+'<span>'+msg+'</span>';
+  $('toasts').appendChild(el);
+  setTimeout(()=>{el.style.transition='.3s';el.style.opacity='0';el.style.transform='translateY(10px)';
+    setTimeout(()=>el.remove(),320);},2600);
 }
-function makeImpulse(ctx, dur=2.2, decay=2.5){
-  const len = ctx.sampleRate*dur, imp = ctx.createBuffer(2,len,ctx.sampleRate);
-  for(let c=0;c<2;c++){ const d=imp.getChannelData(c);
-    for(let i=0;i<len;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/len,decay); }
-  return imp;
+
+/* ================== AUDIO ENGINE ================== */
+let ctx=null,stream=null,n={},running=false,wURL=null,outEl=null,rafId=null;
+let recorder=null,chunks=[],recording=false,recT0=0,recTimer=null;
+
+function workletURL(){
+  if(wURL) return wURL;
+  wURL=URL.createObjectURL(new Blob([$('worklet-src').textContent],{type:'application/javascript'}));
+  return wURL;
 }
-function distCurve(k){
-  const n=1024, c=new Float32Array(n);
-  for(let i=0;i<n;i++){ const x=i*2/n-1; c[i]=(3+k)*x*20*(Math.PI/180)/(Math.PI+k*Math.abs(x)); }
+function makeIR(sec,decay){
+  const rate=ctx.sampleRate,len=Math.max(1,(rate*sec)|0),b=ctx.createBuffer(2,len,rate);
+  for(let c=0;c<2;c++){
+    const d=b.getChannelData(c);
+    for(let i=0;i<len;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/len,decay);
+  }
+  return b;
+}
+function driveCurve(a){
+  const k=a*90,len=2048,c=new Float32Array(len);
+  for(let i=0;i<len;i++){const x=i*2/len-1;c[i]=(1+k)*x/(1+k*Math.abs(x));}
   return c;
 }
 
-/* ============ BUILD AUDIO GRAPH ============ */
-async function startAudio(){
-  const denoise = document.getElementById('denoiseToggle').checked;
-  const devId = document.getElementById('inputSelect').value;
-  ctx = new (window.AudioContext||window.webkitAudioContext)({ latencyHint:'interactive' });
-  await ctx.audioWorklet.addModule(URL.createObjectURL(new Blob([workletCode],{type:'application/javascript'})));
-
-  stream = await navigator.mediaDevices.getUserMedia({ audio:{
-    deviceId: devId ? {exact:devId} : undefined,
-    echoCancellation: denoise, noiseSuppression: denoise, autoGainControl: denoise,
-    channelCount:1, sampleRate:48000
-  }});
-
-  const src = ctx.createMediaStreamSource(stream);
-  const inputGain = ctx.createGain(); inputGain.gain.value = 1.4;
-
-  // Pitch shifter
-  const shifter = new AudioWorkletNode(ctx,'pitch-shifter');
-  shifter.port.postMessage(Math.pow(2, P.pitch/12));
-
-  // Filters: bỏ ù trầm + tone
-  const hp = ctx.createBiquadFilter(); hp.type='highpass'; hp.frequency.value=80;
-  const tone = ctx.createBiquadFilter(); tone.type='lowpass'; tone.frequency.value=20000;
-
-  // Distortion
-  const shaper = ctx.createWaveShaper(); shaper.curve = distCurve(20); shaper.oversample='2x';
-  const distFX = dryWet(ctx, shaper, shaper);
-
-  // Robot (ring modulation)
-  const ringGain = ctx.createGain(); ringGain.gain.value=0;
-  const ringOsc = ctx.createOscillator(); ringOsc.type='square'; ringOsc.frequency.value=55;
-  ringOsc.connect(ringGain.gain); ringOsc.start();
-  const robotFX = dryWet(ctx, ringGain, ringGain);
-
-  // Vibrato
-  const vibDelay = ctx.createDelay(0.1); vibDelay.delayTime.value=0.02;
-  const lfo = ctx.createOscillator(); lfo.frequency.value=6;
-  const lfoGain = ctx.createGain(); lfoGain.gain.value=0;
-  lfo.connect(lfoGain); lfoGain.connect(vibDelay.delayTime); lfo.start();
-  const vibFX = dryWet(ctx, vibDelay, vibDelay);
-
-  // Echo
-  const echoDelay = ctx.createDelay(1); echoDelay.delayTime.value=0.32;
-  const fb = ctx.createGain(); fb.gain.value=0.42;
-  echoDelay.connect(fb); fb.connect(echoDelay);
-  const echoFX = dryWet(ctx, echoDelay, echoDelay);
-
-  // Reverb
-  const conv = ctx.createConvolver(); conv.buffer = makeImpulse(ctx);
-  const revFX = dryWet(ctx, conv, conv);
-
-  // Master
-  const master = ctx.createGain();
-  const analyser = ctx.createAnalyser(); analyser.fftSize=2048;
-  const monitorGain = ctx.createGain();
-  const streamDest = ctx.createMediaStreamDestination();
-
-  // Chain
-  src.connect(inputGain); inputGain.connect(shifter); shifter.connect(hp); hp.connect(tone);
-  tone.connect(distFX.input); distFX.output.connect(robotFX.input);
-  robotFX.output.connect(vibFX.input); vibFX.output.connect(echoFX.input);
-  echoFX.output.connect(revFX.input); revFX.output.connect(master);
-  master.connect(analyser);
-  master.connect(monitorGain); monitorGain.connect(ctx.destination);
-  master.connect(streamDest);
-  outAudio.srcObject = streamDest.stream;
-  outAudio.play().catch(()=>{});
-
-  N = { shifter, tone, distFX, robotFX, ringOsc, vibFX, lfoGain, echoFX, revFX, master, analyser, monitorGain };
-  applyAll();
-  drawViz();
-}
-
-function applyAll(){
-  if(!N.shifter) return;
-  N.shifter.port.postMessage(Math.pow(2, P.pitch/12));
-  N.tone.frequency.setTargetAtTime(400 + (P.tone/100)*15600, ctx.currentTime, .03);
-  N.distFX.setMix(P.dist/100);
-  N.robotFX.setMix(P.robot/100);
-  N.ringOsc.frequency.setTargetAtTime(30 + (P.robot/100)*40, ctx.currentTime, .05);
-  N.vibFX.setMix(P.vibrato>0 ? Math.min(1, P.vibrato/60) : 0);
-  N.lfoGain.gain.setTargetAtTime((P.vibrato/100)*0.012, ctx.currentTime, .05);
-  N.echoFX.setMix(P.echo/100);
-  N.revFX.setMix(P.reverb/100);
-  N.master.gain.setTargetAtTime(P.gain/100, ctx.currentTime, .03);
-  N.monitorGain.gain.setTargetAtTime(document.getElementById('monitorToggle').checked?1:0, ctx.currentTime, .05);
-}
-
-/* ============ VISUALIZER ============ */
-function drawViz(){
-  const cv = document.getElementById('viz'), c2d = cv.getContext('2d');
-  const data = new Uint8Array(2048);
-  function loop(){
-    if(!running) { c2d.clearRect(0,0,cv.width,cv.height); document.getElementById('meter').style.width='0%'; return; }
-    requestAnimationFrame(loop);
-    cv.width = cv.clientWidth; cv.height = cv.clientHeight;
-    N.analyser.getByteTimeDomainData(data);
-    let sum=0;
-    c2d.lineWidth=2;
-    const grad = c2d.createLinearGradient(0,0,cv.width,0);
-    grad.addColorStop(0,'#22d3ee'); grad.addColorStop(.5,'#a78bfa'); grad.addColorStop(1,'#f472b6');
-    c2d.strokeStyle=grad; c2d.beginPath();
-    const step = Math.ceil(data.length/cv.width);
-    for(let x=0;x<cv.width;x++){
-      const v = data[x*step]/128 - 1;
-      sum += v*v;
-      const y = cv.height/2 + v*cv.height*0.45;
-      x===0 ? c2d.moveTo(x,y) : c2d.lineTo(x,y);
-    }
-    c2d.stroke();
-    const rms = Math.min(100, Math.sqrt(sum/cv.width)*400);
-    document.getElementById('meter').style.width = rms+'%';
-  }
+async function startEngine(){
+  ctx=new (window.AudioContext||window.webkitAudioContext)({latencyHint:'interactive'});
+  await ctx.audioWorklet.addModule(workletURL());
+  await openMic();
+  buildGraph();
+  running=true;
+  $('led').classList.add('on');
+  $('stat').textContent='Đang phát trực tiếp';
+  $('powerTxt').textContent='Tắt micro';
+  $('power').classList.remove('primary');
+  listDevices();
   loop();
+  const lat=Math.round((ctx.baseLatency||0)*1000+(768/ctx.sampleRate)*1000);
+  $('latPill').textContent='Trễ ~'+lat+' ms';
+  toast('Micro đã bật — chúc buổi live vui vẻ!','ok');
+}
+async function openMic(){
+  if(stream) stream.getTracks().forEach(t=>t.stop());
+  const dev=$('inDev').value;
+  stream=await navigator.mediaDevices.getUserMedia({
+    audio:{deviceId:dev?{exact:dev}:undefined,channelCount:1,
+      echoCancellation:state.dsp,noiseSuppression:state.dsp,autoGainControl:false},video:false});
+}
+function buildGraph(){
+  n.src=ctx.createMediaStreamSource(stream);
+  n.inGain=ctx.createGain();
+  n.anaIn=ctx.createAnalyser(); n.anaIn.fftSize=2048;
+  n.hp=ctx.createBiquadFilter(); n.hp.type='highpass'; n.hp.frequency.value=80;
+  n.gate=new AudioWorkletNode(ctx,'gate-processor',{outputChannelCount:[1]});
+  n.vox=new AudioWorkletNode(ctx,'vox-processor',{outputChannelCount:[1]});
+
+  n.vib=ctx.createOscillator(); n.vib.type='sine'; n.vib.frequency.value=state.vibRate;
+  n.vibAmp=ctx.createGain(); n.vibAmp.gain.value=0;
+  n.vib.connect(n.vibAmp); n.vibAmp.connect(n.vox.parameters.get('pitch')); n.vib.start();
+
+  n.drive=ctx.createWaveShaper(); n.drive.oversample='2x';
+  n.driveComp=ctx.createGain();
+
+  n.ringIn=ctx.createGain(); n.ringDry=ctx.createGain(); n.ringWet=ctx.createGain();
+  n.ringMul=ctx.createGain(); n.ringMul.gain.value=0;
+  n.osc=ctx.createOscillator(); n.osc.type='sine'; n.osc.frequency.value=state.ringFreq;
+  n.oscAmp=ctx.createGain(); n.oscAmp.gain.value=1;
+  n.osc.connect(n.oscAmp).connect(n.ringMul.gain); n.osc.start();
+  n.ringOut=ctx.createGain();
+
+  n.crush=new AudioWorkletNode(ctx,'crush-processor',{outputChannelCount:[1]});
+
+  n.eqBass=ctx.createBiquadFilter(); n.eqBass.type='lowshelf'; n.eqBass.frequency.value=180;
+  n.eqPres=ctx.createBiquadFilter(); n.eqPres.type='peaking'; n.eqPres.frequency.value=3000; n.eqPres.Q.value=0.9;
+  n.eqAir=ctx.createBiquadFilter();  n.eqAir.type='highshelf'; n.eqAir.frequency.value=9000;
+
+  n.phIn=ctx.createGain(); n.phDry=ctx.createGain(); n.phWet=ctx.createGain();
+  n.phHP=ctx.createBiquadFilter(); n.phHP.type='highpass'; n.phHP.frequency.value=450; n.phHP.Q.value=.8;
+  n.phLP=ctx.createBiquadFilter(); n.phLP.type='lowpass';  n.phLP.frequency.value=2900; n.phLP.Q.value=.8;
+  n.phOut=ctx.createGain();
+
+  n.chIn=ctx.createGain(); n.chDry=ctx.createGain(); n.chOut=ctx.createGain();
+  n.d1=ctx.createDelay(0.05); n.d1.delayTime.value=0.013;
+  n.d2=ctx.createDelay(0.05); n.d2.delayTime.value=0.021;
+  n.g1=ctx.createGain(); n.g2=ctx.createGain();
+  n.l1=ctx.createOscillator(); n.l1.frequency.value=0.6;  n.la1=ctx.createGain(); n.la1.gain.value=0.0035;
+  n.l2=ctx.createOscillator(); n.l2.frequency.value=0.41; n.la2=ctx.createGain(); n.la2.gain.value=0.0027;
+  n.l1.connect(n.la1).connect(n.d1.delayTime); n.l2.connect(n.la2).connect(n.d2.delayTime);
+  n.l1.start(); n.l2.start();
+
+  n.revSend=ctx.createGain(); n.conv=ctx.createConvolver(); n.conv.buffer=makeIR(2.2,2.6); n.revRet=ctx.createGain();
+  n.dlySend=ctx.createGain(); n.dly=ctx.createDelay(1.2); n.dly.delayTime.value=0.22;
+  n.fb=ctx.createGain(); n.fb.gain.value=0.3;
+  n.dlyLP=ctx.createBiquadFilter(); n.dlyLP.type='lowpass'; n.dlyLP.frequency.value=3200;
+
+  n.sum=ctx.createGain();
+  n.comp=ctx.createDynamicsCompressor();
+  n.master=ctx.createGain();
+  n.limit=ctx.createDynamicsCompressor();
+  n.limit.threshold.value=-2; n.limit.knee.value=0; n.limit.ratio.value=20;
+  n.limit.attack.value=0.002; n.limit.release.value=0.12;
+  n.anaOut=ctx.createAnalyser(); n.anaOut.fftSize=2048; n.anaOut.smoothingTimeConstant=0.72;
+  n.mon=ctx.createGain(); n.mon.gain.value=0;
+  n.dest=ctx.createMediaStreamDestination();
+
+  n.src.connect(n.inGain); n.inGain.connect(n.anaIn);
+  n.inGain.connect(n.hp).connect(n.gate).connect(n.vox).connect(n.drive).connect(n.driveComp).connect(n.ringIn);
+  n.ringIn.connect(n.ringDry).connect(n.ringOut);
+  n.ringIn.connect(n.ringMul).connect(n.ringWet).connect(n.ringOut);
+  n.ringOut.connect(n.crush).connect(n.eqBass).connect(n.eqPres).connect(n.eqAir).connect(n.phIn);
+  n.phIn.connect(n.phDry).connect(n.phOut);
+  n.phIn.connect(n.phHP).connect(n.phLP).connect(n.phWet).connect(n.phOut);
+  n.phOut.connect(n.chIn);
+  n.chIn.connect(n.chDry).connect(n.chOut);
+  n.chIn.connect(n.d1).connect(n.g1).connect(n.chOut);
+  n.chIn.connect(n.d2).connect(n.g2).connect(n.chOut);
+  n.chOut.connect(n.sum);
+  n.chOut.connect(n.revSend).connect(n.conv).connect(n.revRet).connect(n.sum);
+  n.chOut.connect(n.dlySend).connect(n.dly).connect(n.dlyLP).connect(n.sum);
+  n.dlyLP.connect(n.fb).connect(n.dly);
+  n.sum.connect(n.comp).connect(n.master).connect(n.limit).connect(n.anaOut);
+  n.anaOut.connect(n.mon).connect(ctx.destination);
+  n.anaOut.connect(n.dest);
+
+  outEl=new Audio(); outEl.srcObject=n.dest.stream; outEl.autoplay=true; outEl.volume=1;
+  outEl.play().catch(()=>{});
+  applyAll(true);
+}
+function stopEngine(){
+  running=false;
+  if(rafId) cancelAnimationFrame(rafId);
+  if(recording) toggleRec();
+  if(stream) stream.getTracks().forEach(t=>t.stop());
+  if(outEl){ outEl.pause(); outEl.srcObject=null; outEl=null; }
+  if(ctx) ctx.close();
+  ctx=null; n={};
+  $('led').classList.remove('on','mute');
+  $('stat').textContent='Đã tắt micro';
+  $('powerTxt').textContent='Bật micro';
+  $('power').classList.add('primary');
+  $('latPill').textContent='— ms';
+  $('mIn').style.width='0%'; $('mOut').style.width='0%'; $('mGr').style.width='0%';
+  $('noteTag').textContent='—';
+  const g=cvx; g&&g.clearRect(0,0,cv.clientWidth,cv.clientHeight);
 }
 
-/* ============ UI ============ */
-const micBtn = document.getElementById('micBtn'), micStatus = document.getElementById('micStatus');
-micBtn.onclick = async () => {
-  if(running){
-    stream?.getTracks().forEach(t=>t.stop()); ctx?.close();
-    running=false; micBtn.classList.remove('active'); micBtn.textContent='🎙️';
-    micStatus.textContent='Nhấn để bật micro'; micStatus.classList.remove('on');
-    return;
-  }
+function set(p,v,t){ if(!p) return; try{p.setTargetAtTime(v,ctx.currentTime,t||0.045);}catch(e){p.value=v;} }
+function applyAll(instant){
+  saveState();
+  if(!running||!ctx) return;
+  const T=instant?0.005:0.05;
+  set(n.vox.parameters.get('pitch'),st2r(state.pitch),T);
+  set(n.vox.parameters.get('formant'),st2r(state.formant),T);
+  n.vox.parameters.get('bypass').value=state.bypass?1:0;
+  n.vox.port.postMessage({keepFormant:state.keepFormant,lock:state.lock});
+
+  set(n.vibAmp.gain,state.vibrato/100*0.055*st2r(state.pitch),T);
+  set(n.vib.frequency,state.vibRate,0.08);
+
+  set(n.inGain.gain,state.mute?0:dbg(state.gain),0.02);
+  set(n.gate.parameters.get('threshold'),state.gate,0.05);
+  n.gate.parameters.get('amount').value=0.97;
+
+  const dv=state.drive/100;
+  n.drive.curve=driveCurve(dv);
+  set(n.driveComp.gain,1/(1+dv*1.6),T);
+
+  const rw=state.ring/100;
+  set(n.ringDry.gain,1-rw*0.85,T); set(n.ringWet.gain,rw*1.5,T);
+  set(n.osc.frequency,state.ringFreq,0.08);
+
+  const cvw=state.crush/100;
+  set(n.crush.parameters.get('mix'),cvw,T);
+  n.crush.parameters.get('bits').value=16-cvw*11;
+  n.crush.parameters.get('reduce').value=1+cvw*9;
+
+  set(n.eqBass.gain,state.bass,T);
+  set(n.eqPres.gain,state.presence,T);
+  set(n.eqAir.gain,state.air,T);
+
+  const pw=state.phone/100;
+  set(n.phDry.gain,1-pw,T); set(n.phWet.gain,pw*1.25,T);
+
+  const cw=state.chorus/100;
+  set(n.chDry.gain,1-cw*0.35,T); set(n.g1.gain,cw*0.5,T); set(n.g2.gain,cw*0.42,T);
+
+  set(n.revSend.gain,state.reverb/100*0.9,T); set(n.revRet.gain,0.95,T);
+  set(n.dlySend.gain,state.delay/100*0.75,T); set(n.fb.gain,0.18+state.delay/100*0.3,T);
+
+  const c=state.comp/100;
+  set(n.comp.threshold,-6-c*26,0.1); set(n.comp.ratio,1+c*7,0.1);
+  n.comp.knee.value=26; n.comp.attack.value=0.006; n.comp.release.value=0.22;
+  set(n.master.gain,dbg(state.master)*(1+c*0.55),T);
+  set(n.mon.gain,state.monitor?1:0,0.06);
+}
+
+/* ================== SINH GIAO DIỆN NÚM CHỈNH ================== */
+const fmt=c=>{const v=+state[c.id];return (c.d?v.toFixed(c.d):Math.round(v))+(c.u||'');};
+function buildControls(){
+  const box={main:$('c-main'),fx:$('c-fx'),tone:$('c-tone'),proc:$('c-proc'),dev:$('c-dev')};
+  CTRLS.forEach(c=>{
+    const d=document.createElement('div');
+    d.className='ctl';
+    d.innerHTML=`<div class="lab"><span>${c.nm}</span><b class="val" id="v-${c.id}">${fmt(c)}</b></div>
+      <input type="range" id="r-${c.id}" min="${c.min}" max="${c.max}" step="${c.step}" value="${state[c.id]}">`;
+    if(c.g==='proc') box.proc.insertBefore(d,box.proc.firstChild); else box[c.g].appendChild(d);
+    const el=d.querySelector('input');
+    el.addEventListener('input',()=>{
+      state[c.id]=+el.value;
+      if(state.link && c.id==='pitch'){ state.formant=Math.round(state.pitch*0.35*2)/2; }
+      if(state.link && c.id==='formant'){ state.link=false; $('tLink').classList.remove('on'); }
+      state.preset=''; syncUI(); applyAll(); markPreset();
+    });
+  });
+}
+function fillRange(el){ const a=+el.min,b=+el.max; el.style.setProperty('--fill',((+el.value-a)/(b-a)*100)+'%'); }
+function syncUI(){
+  CTRLS.forEach(c=>{
+    const el=$('r-'+c.id); if(!el) return;
+    el.value=state[c.id]; fillRange(el); $('v-'+c.id).textContent=fmt(c);
+  });
+  $('kPitch').textContent=(+state.pitch).toFixed(1);
+  $('kFormant').textContent=(+state.formant).toFixed(1);
+  ['tMon:monitor','tDsp:dsp','tKeep:keepFormant','tLock:lock','tBypass:bypass','tLink:link']
+    .forEach(s=>{const[a,b]=s.split(':');$(a).classList.toggle('on',!!state[b]);});
+  updateXY();
+  const on=!!state.mute;
+  $('muteIcon').setAttribute('href',on?'#i-micoff':'#i-mic');
+  $('muteBtn').classList.toggle('danger',on);
+  $('led').classList.toggle('mute',on&&running);
+}
+function markPreset(){
+  document.querySelectorAll('.preset').forEach(b=>b.classList.toggle('active',b.dataset.id===state.preset));
+}
+
+/* ================== XY PAD ================== */
+const xy=$('xy'),xyH=$('xyH');
+function updateXY(){
+  const px=(state.pitch+14)/28*100, py=(1-(state.formant+10)/20)*100;
+  xyH.style.left=px+'%'; xyH.style.top=py+'%';
+  xy.style.setProperty('--px',px+'%'); xy.style.setProperty('--py',py+'%');
+}
+function xyMove(e){
+  const r=xy.getBoundingClientRect();
+  const x=clamp((e.clientX-r.left)/r.width,0,1), y=clamp((e.clientY-r.top)/r.height,0,1);
+  state.pitch=Math.round((x*28-14)*2)/2;
+  state.formant=Math.round(((1-y)*20-10)*2)/2;
+  state.preset=''; syncUI(); applyAll(); markPreset();
+}
+xy.addEventListener('pointerdown',e=>{xy.setPointerCapture(e.pointerId);xy.classList.add('drag');xyMove(e);});
+xy.addEventListener('pointermove',e=>{ if(xy.hasPointerCapture&&xy.hasPointerCapture(e.pointerId)) xyMove(e); });
+xy.addEventListener('pointerup',()=>xy.classList.remove('drag'));
+xy.addEventListener('pointercancel',()=>xy.classList.remove('drag'));
+
+/* ================== PRESET ================== */
+function userList(){ try{return JSON.parse(localStorage.getItem('vox_user')||'[]');}catch(e){return[];} }
+function renderPresets(){
+  const q=($('q').value||'').toLowerCase().trim();
+  const box=$('presets'); box.innerHTML='';
+  let shown=0;
+  PRESETS.forEach((p,i)=>{
+    if(q && !(p.nm.toLowerCase().includes(q)||p.tag.includes(q))) return;
+    shown++;
+    const b=document.createElement('button');
+    b.className='preset'+(state.preset===p.id?' active':'');
+    b.dataset.id=p.id;
+    b.innerHTML=(i<10?`<span class="kb">${(i+1)%10}</span>`:'')+icon(p.ic,'ic lg')+`<span class="nm">${p.nm}</span>`;
+    b.onclick=()=>applyPreset(p);
+    box.appendChild(b);
+  });
+  if(!shown) box.innerHTML='<div class="empty">Không tìm thấy giọng phù hợp.</div>';
+  renderUser();
+}
+function renderUser(){
+  const box=$('userPresets'); box.innerHTML='';
+  const list=userList();
+  if(!list.length){ box.innerHTML='<div class="empty">Chưa có giọng nào được lưu.</div>'; return; }
+  list.forEach(p=>{
+    const b=document.createElement('button');
+    b.className='preset'+(state.preset===p.id?' active':'');
+    b.dataset.id=p.id;
+    b.innerHTML=icon('i-star','ic lg')+`<span class="nm">${p.nm}</span>`;
+    b.onclick=()=>applyPreset(p);
+    box.appendChild(b);
+  });
+}
+function applyPreset(p){
+  Object.assign(state,BASE,p.p);
+  state.preset=p.id;
+  state.link=false; 
+  syncUI(); applyAll(); markPreset();
+  toast('Đã đổi sang giọng “'+p.nm+'”','ok');
+}
+$('q').addEventListener('input',renderPresets);
+$('saveP').onclick=()=>{
+  const nm=prompt('Đặt tên cho giọng này:','Giọng của tôi');
+  if(!nm) return;
+  const list=userList(), p={id:'u'+Date.now(),nm:nm.slice(0,24),p:{}};
+  Object.keys(BASE).forEach(k=>p.p[k]=state[k]);
+  list.push(p); localStorage.setItem('vox_user',JSON.stringify(list));
+  state.preset=p.id; renderPresets(); toast('Đã lưu giọng “'+p.nm+'”','ok');
+};
+$('clearP').onclick=()=>{
+  if(!userList().length){ toast('Chưa có giọng nào để xóa.','info'); return; }
+  if(confirm('Xóa toàn bộ giọng đã lưu?')){ localStorage.removeItem('vox_user'); renderPresets(); toast('Đã xóa giọng đã lưu.','ok'); }
+};
+$('resetBtn').onclick=()=>{ applyPreset(PRESETS[0]); toast('Đã đặt lại về mặc định.','info'); };
+
+/* ================== TOGGLE ================== */
+function bindToggle(id,key,after){
+  const el=$(id);
+  const run=()=>{ state[key]=!state[key]; syncUI(); applyAll(); if(after) after(); };
+  el.onclick=run;
+  el.onkeydown=e=>{ if(e.key===' '||e.key==='Enter'){ e.preventDefault(); run(); } };
+}
+bindToggle('tMon','monitor',()=>{ if(state.monitor) toast('Nhớ đeo tai nghe để tránh hú rít.','info'); });
+bindToggle('tKeep','keepFormant');
+bindToggle('tLock','lock');
+bindToggle('tBypass','bypass');
+bindToggle('tLink','link',()=>{ if(state.link){ state.formant=Math.round(state.pitch*0.35*2)/2; syncUI(); applyAll(); } });
+bindToggle('tDsp','dsp',async()=>{ if(running){ try{ await openMic(); rewireMic(); }catch(e){ toast('Không mở lại được micro.','bad'); } } });
+function rewireMic(){ try{n.src.disconnect();}catch(e){} n.src=ctx.createMediaStreamSource(stream); n.src.connect(n.inGain); }
+
+/* ================== THIẾT BỊ ================== */
+async function listDevices(){
   try{
-    micStatus.textContent='⏳ Đang khởi động...';
-    await startAudio();
-    running=true; micBtn.classList.add('active'); micBtn.textContent='⏹️';
-    micStatus.textContent='🔴 ĐANG PHÁT TRỰC TIẾP — hãy nói thử!'; micStatus.classList.add('on');
-    loadDevices();
-  }catch(e){
-    micStatus.textContent='❌ Không truy cập được micro: '+e.message;
+    const devs=await navigator.mediaDevices.enumerateDevices();
+    const ins=devs.filter(d=>d.kind==='audioinput'), outs=devs.filter(d=>d.kind==='audiooutput');
+    const fill=(sel,list,label)=>{
+      const cur=sel.value; sel.innerHTML='';
+      list.forEach((d,i)=>{const o=document.createElement('option');o.value=d.deviceId;
+        o.textContent=d.label||`${label} ${i+1}`;sel.appendChild(o);});
+      if(cur) sel.value=cur;
+    };
+    fill($('inDev'),ins,'Micro');
+    if(outs.length&&outEl&&typeof outEl.setSinkId==='function') fill($('outDev'),outs,'Loa');
+    else $('outDev').innerHTML='<option>Trình duyệt không hỗ trợ chọn đầu ra</option>';
+  }catch(e){}
+}
+$('inDev').onchange=async()=>{ if(running){ try{ await openMic(); rewireMic(); toast('Đã đổi micro.','ok'); }catch(e){ toast('Không mở được micro này.','bad'); } } };
+$('outDev').onchange=async()=>{
+  if(outEl&&outEl.setSinkId){ try{ await outEl.setSinkId($('outDev').value); toast('Đã đổi đầu ra.','ok'); }
+  catch(e){ toast('Không đổi được đầu ra: '+e.message,'bad'); } }
+};
+
+/* ================== GHI ÂM ================== */
+function toggleRec(){
+  if(!running){ toast('Hãy bật micro trước khi ghi âm.','info'); return; }
+  if(!recording){
+    chunks=[];
+    try{ recorder=new MediaRecorder(n.dest.stream); }
+    catch(e){ toast('Trình duyệt không hỗ trợ ghi âm.','bad'); return; }
+    recorder.ondataavailable=e=>{ if(e.data.size) chunks.push(e.data); };
+    recorder.onstop=()=>{
+      const b=new Blob(chunks,{type:'audio/webm'}),u=URL.createObjectURL(b);
+      const pl=$('player'); pl.src=u; pl.style.display='block';
+      const a=$('dl'); a.href=u; a.download='voxmorph-'+Date.now()+'.webm'; a.style.display='inline-flex';
+      toast('Đã lưu bản ghi thử.','ok');
+    };
+    recorder.start(); recording=true; recT0=Date.now();
+    $('rec').classList.add('rec-on');
+    recTimer=setInterval(()=>{
+      const s=Math.floor((Date.now()-recT0)/1000);
+      $('recTxt').textContent='Dừng · '+String((s/60)|0).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
+    },250);
+  }else{
+    try{ recorder.stop(); }catch(e){}
+    recording=false; clearInterval(recTimer);
+    $('rec').classList.remove('rec-on'); $('recTxt').textContent='Ghi âm thử';
   }
-};
-
-async function loadDevices(){
-  const devs = await navigator.mediaDevices.enumerateDevices();
-  const ins = document.getElementById('inputSelect'), outs = document.getElementById('outputSelect');
-  ins.innerHTML=''; outs.innerHTML='<option value="">Loa / Tai nghe mặc định</option>';
-  devs.forEach(d=>{
-    if(d.kind==='audioinput') ins.add(new Option(d.label||'Micro '+(ins.length+1), d.deviceId));
-    if(d.kind==='audiooutput') outs.add(new Option(d.label||'Thiết bị '+(outs.length+1), d.deviceId));
-  });
 }
-document.getElementById('inputSelect').onchange = async ()=>{ if(running){ micBtn.onclick(); micBtn.onclick(); } };
-document.getElementById('outputSelect').onchange = e => {
-  if(e.target.value && outAudio.setSinkId) outAudio.setSinkId(e.target.value).catch(()=>{});
-};
-document.getElementById('monitorToggle').onchange = applyAll;
+$('rec').onclick=toggleRec;
+$('panic').onclick=()=>{ if(running){ stopEngine(); toast('Đã tắt toàn bộ âm thanh.','info'); } };
 
-/* Presets */
-const grid = document.getElementById('presetGrid');
-PRESETS.forEach((pr,i)=>{
-  const el = document.createElement('div');
-  el.className='preset'+(i===0?' active':'');
-  el.innerHTML=`<div class="ico">${pr.ico}</div><div class="name">${pr.name}</div>`;
-  el.onclick=()=>{
-    document.querySelectorAll('.preset').forEach(x=>x.classList.remove('active'));
-    el.classList.add('active');
-    Object.assign(P, pr.p);
-    syncSliders(); applyAll();
+/* ================== NGUỒN ================== */
+$('power').onclick=async()=>{
+  if(running){ stopEngine(); return; }
+  $('power').disabled=true; $('stat').textContent='Đang khởi động…';
+  try{ await startEngine(); }
+  catch(e){
+    toast('Không truy cập được micro (cần HTTPS hoặc localhost).','bad');
+    $('stat').textContent='Lỗi micro';
+  }
+  $('power').disabled=false;
+};
+$('muteBtn').onclick=()=>{ state.mute=!state.mute; syncUI(); applyAll();
+  if(running) $('stat').textContent=state.mute?'Đang tắt tiếng':'Đang phát trực tiếp'; };
+
+/* ================== PHÍM TẮT ================== */
+document.addEventListener('keydown',e=>{
+  const t=e.target.tagName;
+  if((t==='INPUT'&&e.target.type!=='range')||t==='TEXTAREA'||t==='SELECT') return;
+  const k=e.key.toLowerCase();
+  if(k>='0'&&k<='9'){ const i=(k==='0')?9:(+k-1); if(PRESETS[i]) applyPreset(PRESETS[i]); }
+  else if(k==='b'){ state.bypass=!state.bypass; syncUI(); applyAll(); }
+  else if(k==='m'){ $('muteBtn').click(); }
+  else if(k==='r'){ toggleRec(); }
+  else if(e.key==='Escape'){ if(running){ stopEngine(); toast('Đã tắt khẩn cấp.','info'); } }
+  else if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)){
+    if(e.key==='ArrowUp'||e.key==='ArrowDown'){
+      state.pitch=clamp(state.pitch+(e.key==='ArrowUp'?.5:-.5),-14,14);
+      if(state.link) state.formant=Math.round(state.pitch*0.35*2)/2;
+    }else{
+      state.formant=clamp(state.formant+(e.key==='ArrowRight'?.5:-.5),-10,10);
+    }
+    state.preset=''; syncUI(); applyAll(); markPreset(); e.preventDefault();
+  }
+});
+
+/* ================== TAB & SEGMENT ================== */
+document.querySelectorAll('.tabbar button').forEach(b=>{
+  b.onclick=()=>{
+    document.querySelectorAll('.tabbar button').forEach(x=>x.classList.remove('on'));
+    document.querySelectorAll('.col').forEach(x=>x.classList.remove('active'));
+    b.classList.add('on'); $(b.dataset.t).classList.add('active');
+    window.scrollTo({top:0,behavior:'smooth'});
+    setTimeout(resize,60);
   };
-  grid.appendChild(el);
+});
+$('mixSeg').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  $('mixSeg').querySelectorAll('button').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on');
+  ['fx','tone','proc'].forEach(m=>$('c-'+m).hidden=(m!==b.dataset.m));
+});
+$('vizSeg').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  $('vizSeg').querySelectorAll('button').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on'); state.viz=b.dataset.v;
+  $('vizTag').textContent={bars:'PHỔ SAU XỬ LÝ',wave:'DẠNG SÓNG',radial:'PHỔ VÒNG'}[state.viz];
+  saveState();
 });
 
-/* Sliders */
-const SL = [
-  ['sPitch','vPitch','pitch', v=> (v>0?'+':'')+v+' semitone'],
-  ['sTone','vTone','tone', v=>v+'%'],
-  ['sRobot','vRobot','robot', v=>v+'%'],
-  ['sVibrato','vVibrato','vibrato', v=>v+'%'],
-  ['sDist','vDist','dist', v=>v+'%'],
-  ['sEcho','vEcho','echo', v=>v+'%'],
-  ['sReverb','vReverb','reverb', v=>v+'%'],
-  ['sGain','vGain','gain', v=>v+'%'],
-];
-function paintFill(el){ const p=(el.value-el.min)/(el.max-el.min)*100; el.style.setProperty('--fill',p+'%'); }
-SL.forEach(([sid,vid,key,fmt])=>{
-  const s=document.getElementById(sid), v=document.getElementById(vid);
-  s.addEventListener('input',()=>{ P[key]=parseFloat(s.value); v.textContent=fmt(s.value); paintFill(s); applyAll();
-    document.querySelectorAll('.preset').forEach(x=>x.classList.remove('active')); });
-  paintFill(s);
-});
-function syncSliders(){
-  SL.forEach(([sid,vid,key,fmt])=>{
-    const s=document.getElementById(sid); s.value=P[key];
-    document.getElementById(vid).textContent=fmt(P[key]); paintFill(s);
-  });
+/* ================== LƯU TRẠNG THÁI ================== */
+let saveT;
+function saveState(){
+  clearTimeout(saveT);
+  saveT=setTimeout(()=>{ try{ localStorage.setItem('vox_state',JSON.stringify(state)); }catch(e){} },400);
 }
-document.getElementById('resetBtn').onclick=()=>{ Object.assign(P,PRESETS[0].p); syncSliders(); applyAll();
-  document.querySelectorAll('.preset').forEach((x,i)=>x.classList.toggle('active',i===0)); };
+function loadState(){
+  try{
+    const s=JSON.parse(localStorage.getItem('vox_state')||'null');
+    if(s) Object.assign(state,s,{mute:false,bypass:false,monitor:false});
+  }catch(e){}
+}
+
+/* ================== VISUALIZER ================== */
+const cv=$('cv'); let cvx=cv.getContext('2d');
+function resize(){
+  const r=cv.getBoundingClientRect(),d=Math.min(2,window.devicePixelRatio||1);
+  if(!r.width) return;
+  cv.width=r.width*d; cv.height=r.height*d; cvx.setTransform(d,0,0,d,0,0);
+}
+window.addEventListener('resize',resize); resize();
+
+const NOTES=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+function detectPitch(buf,sr){
+  let rms=0; for(let i=0;i<buf.length;i++) rms+=buf[i]*buf[i];
+  rms=Math.sqrt(rms/buf.length);
+  if(rms<0.012) return -1;
+  let r1=0,r2=buf.length-1;
+  const th=0.2;
+  for(let i=0;i<buf.length/2;i++){ if(Math.abs(buf[i])<th){r1=i;break;} }
+  for(let i=1;i<buf.length/2;i++){ if(Math.abs(buf[buf.length-i])<th){r2=buf.length-i;break;} }
+  const b=buf.slice(r1,r2), L=b.length, c=new Float32Array(L).fill(0);
+  for(let i=0;i<L;i++) for(let j=0;j<L-i;j++) c[i]+=b[j]*b[j+i];
+  let d=0; while(d<L-1&&c[d]>c[d+1]) d++;
+  let mx=-1,mi=-1;
+  for(let i=d;i<L;i++) if(c[i]>mx){mx=c[i];mi=i;}
+  if(mi<=0) return -1;
+  let T=mi;
+  const y1=c[mi-1],y2=c[mi],y3=c[mi+1]||0, a=(y1+y3-2*y2)/2, bq=(y3-y1)/2;
+  if(a) T=mi-bq/(2*a);
+  const f=sr/T;
+  return (f>60&&f<1200)?f:-1;
+}
+
+let fOut,tOut,tIn,fIn32,tick=0;
+function loop(){
+  rafId=requestAnimationFrame(loop);
+  if(!running) return;
+  if(!fOut){
+    fOut=new Uint8Array(n.anaOut.frequencyBinCount);
+    tOut=new Uint8Array(n.anaOut.fftSize);
+    tIn=new Uint8Array(n.anaIn.fftSize);
+    fIn32=new Float32Array(n.anaIn.fftSize);
+  }
+  n.anaOut.getByteFrequencyData(fOut);
+  n.anaOut.getByteTimeDomainData(tOut);
+  n.anaIn.getByteTimeDomainData(tIn);
+
+  let s=0; for(let i=0;i<tIn.length;i++){const v=(tIn[i]-128)/128;s+=v*v;}
+  $('mIn').style.width=clamp(Math.sqrt(s/tIn.length)*320,0,100)+'%';
+  s=0; for(let i=0;i<tOut.length;i++){const v=(tOut[i]-128)/128;s+=v*v;}
+  $('mOut').style.width=clamp(Math.sqrt(s/tOut.length)*320,0,100)+'%';
+  $('mGr').style.width=clamp(Math.abs(n.comp.reduction||0)*4,0,100)+'%';
+
+  if((tick++ % 8)===0 && n.anaIn.getFloatTimeDomainData){
+    n.anaIn.getFloatTimeDomainData(fIn32);
+    const f=detectPitch(fIn32,ctx.sampleRate);
+    if(f>0){
+      const m=Math.round(69+12*Math.log2(f/440));
+      $('noteTag').textContent=NOTES[(m%12+12)%12]+(Math.floor(m/12)-1)+' · '+Math.round(f)+' Hz';
+    } else $('noteTag').textContent='—';
+  }
+  draw();
+}
+function draw(){
+  const g=cvx,w=cv.clientWidth,h=cv.clientHeight;
+  g.clearRect(0,0,w,h);
+  if(state.viz==='wave') drawWave(g,w,h);
+  else if(state.viz==='radial') drawRadial(g,w,h);
+  else drawBars(g,w,h);
+}
+function grad(g,x0,y0,x1,y1){
+  const gr=g.createLinearGradient(x0,y0,x1,y1);
+  gr.addColorStop(0,'rgba(34,211,238,.95)');
+  gr.addColorStop(.55,'rgba(139,92,246,.92)');
+  gr.addColorStop(1,'rgba(244,114,182,.95)');
+  return gr;
+}
+function drawBars(g,w,h){
+  const bars=clamp((w/9)|0,24,84), step=Math.max(1,Math.floor(fOut.length*0.6/bars)), bw=w/bars;
+  for(let i=0;i<bars;i++){
+    let m=0; for(let j=0;j<step;j++) m=Math.max(m,fOut[i*step+j]||0);
+    const bh=Math.max(3,Math.pow(m/255,1.32)*h*0.84);
+    g.fillStyle=grad(g,0,h,0,h-bh);
+    const x=i*bw+1.5,ww=Math.max(2,bw-3);
+    g.beginPath();
+    g.roundRect?g.roundRect(x,h-bh,ww,bh,ww/2.4):g.rect(x,h-bh,ww,bh);
+    g.fill();
+    g.globalAlpha=.15; g.beginPath();
+    g.roundRect?g.roundRect(x,h-bh-6,ww,3,1.5):g.rect(x,h-bh-6,ww,3);
+    g.fill(); g.globalAlpha=1;
+  }
+}
+function drawWave(g,w,h){
+  g.lineWidth=2.2; g.strokeStyle=grad(g,0,0,w,0); g.lineJoin='round';
+  g.beginPath();
+  for(let i=0;i<tOut.length;i+=2){
+    const x=i/tOut.length*w, y=h/2+((tOut[i]-128)/128)*h*0.42;
+    i?g.lineTo(x,y):g.moveTo(x,y);
+  }
+  g.stroke();
+  g.globalAlpha=.14; g.lineTo(w,h); g.lineTo(0,h); g.closePath();
+  g.fillStyle=grad(g,0,0,w,0); g.fill(); g.globalAlpha=1;
+}
+function drawRadial(g,w,h){
+  const cx=w/2,cy=h/2,R=Math.min(w,h)*0.21,bars=72;
+  const step=Math.max(1,Math.floor(fOut.length*0.55/bars));
+  g.save(); g.translate(cx,cy);
+  g.strokeStyle='rgba(255,255,255,.13)'; g.lineWidth=1;
+  g.beginPath(); g.arc(0,0,R,0,Math.PI*2); g.stroke();
+  for(let i=0;i<bars;i++){
+    let m=0; for(let j=0;j<step;j++) m=Math.max(m,fOut[i*step+j]||0);
+    const len=Math.pow(m/255,1.3)*Math.min(w,h)*0.3+3;
+    const a=(i/bars)*Math.PI*2-Math.PI/2;
+    const c=Math.cos(a),s=Math.sin(a);
+    g.strokeStyle=grad(g,0,-R,0,-(R+len));
+    g.lineWidth=Math.max(2,(2*Math.PI*R/bars)*0.55); g.lineCap='round';
+    g.beginPath(); g.moveTo(c*R,s*R); g.lineTo(c*(R+len),s*(R+len)); g.stroke();
+  }
+  g.restore();
+}
+
+/* ================== KHỞI TẠO ================== */
+loadState();
+buildControls();
+renderPresets();
+syncUI();
+$('vizSeg').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.v===state.viz));
+$('vizTag').textContent={bars:'PHỔ SAU XỬ LÝ',wave:'DẠNG SÓNG',radial:'PHỔ VÒNG'}[state.viz]||'PHỔ SAU XỬ LÝ';
+if(navigator.mediaDevices&&navigator.mediaDevices.addEventListener)
+  navigator.mediaDevices.addEventListener('devicechange',()=>{ if(running) listDevices(); });
+window.addEventListener('orientationchange',()=>setTimeout(resize,300));
 </script>
 </body>
 </html>
