@@ -1,0 +1,1421 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#eef1f6">
+<title>Battery Brief · AI</title>
+<style>
+:root{
+  --bg:#eceff5; --bg-2:#f8f9fc;
+  --surface:rgba(255,255,255,.82); --surface-solid:#ffffff;
+  --surface-2:#f4f6fa; --surface-3:#e8ebf2; --surface-4:#dbe0ea;
+  --txt:#0c1016; --txt-2:#535c6b; --txt-3:#88909e;
+  --line:rgba(10,15,30,.08);
+  --accent:#0b62e4; --accent-2:#4d95ff; --accent-soft:#e6efff;
+  --green:#0ba75e; --green-2:#41d78f; --green-soft:#e0f7ec;
+  --amber:#dd8400; --amber-2:#ffb648; --amber-soft:#fdf1dd;
+  --red:#e0433b; --red-2:#ff7d73; --red-soft:#fdeae9;
+  --violet:#7145e6; --violet-2:#a98cff; --violet-soft:#eee9fe;
+  --r-xl:32px; --r-lg:22px; --r-md:16px; --r-sm:11px;
+  --shadow:0 1px 2px rgba(16,24,40,.04), 0 12px 34px rgba(16,24,40,.07);
+  --shadow-lg:0 2px 8px rgba(16,24,40,.06), 0 26px 60px rgba(16,24,40,.11);
+  --ease:cubic-bezier(.22,.61,.36,1);
+  --glow:rgba(11,167,94,.25);
+}
+html[data-theme="dark"]{
+  --bg:#000000; --bg-2:#08090b;
+  --surface:rgba(22,24,28,.78); --surface-solid:#16181c;
+  --surface-2:#1c1f24; --surface-3:#262a30; --surface-4:#343941;
+  --txt:#f2f4f7; --txt-2:#a6adb8; --txt-3:#727a85;
+  --line:rgba(255,255,255,.08);
+  --accent:#5fa2ff; --accent-2:#93c2ff; --accent-soft:#122340;
+  --green:#3ddc84; --green-2:#8af7bb; --green-soft:#0d2a1c;
+  --amber:#ffb43f; --amber-2:#ffd48c; --amber-soft:#2c2212;
+  --red:#ff6f64; --red-2:#ffa79f; --red-soft:#2e1715;
+  --violet:#b49bff; --violet-2:#d5c6ff; --violet-soft:#1d1733;
+  --shadow:0 1px 0 rgba(255,255,255,.04);
+  --shadow-lg:0 1px 0 rgba(255,255,255,.05), 0 24px 60px rgba(0,0,0,.6);
+  --glow:rgba(61,220,132,.18);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  background:linear-gradient(180deg,var(--bg-2),var(--bg) 420px);
+  color:var(--txt);
+  font-family:"SamsungOne","Samsung Sans","Segoe UI Variable","Inter",system-ui,-apple-system,"Roboto","Helvetica Neue",sans-serif;
+  font-size:15px; line-height:1.5; letter-spacing:-.011em;
+  -webkit-font-smoothing:antialiased;
+  padding-bottom:calc(56px + env(safe-area-inset-bottom));
+  transition:background .45s var(--ease), color .3s var(--ease);
+}
+.aurora{position:fixed;inset:-25% -15% auto -15%;height:78vh;z-index:0;pointer-events:none;opacity:.85;
+  background:
+    radial-gradient(42% 52% at 18% 22%, color-mix(in srgb,var(--accent) 26%, transparent), transparent 70%),
+    radial-gradient(38% 48% at 84% 8%,  color-mix(in srgb,var(--violet) 24%, transparent), transparent 70%),
+    radial-gradient(44% 44% at 58% 48%, color-mix(in srgb,var(--green) 18%, transparent), transparent 70%);
+  filter:blur(38px);animation:drift 22s ease-in-out infinite alternate}
+@keyframes drift{to{transform:translate3d(0,-5%,0) scale(1.08)}}
+html[data-theme="dark"] .aurora{opacity:.5}
+header,main{position:relative;z-index:1}
+.wrap{max-width:580px;margin:0 auto;padding:0 16px}
+
+.appbar{position:sticky;top:0;z-index:60;padding-top:env(safe-area-inset-top);
+  background:color-mix(in srgb,var(--bg) 66%, transparent);
+  backdrop-filter:saturate(180%) blur(26px);-webkit-backdrop-filter:saturate(180%) blur(26px);
+  transition:box-shadow .3s var(--ease),background .3s var(--ease)}
+.appbar.stuck{box-shadow:0 1px 0 var(--line)}
+.appbar-row{display:flex;align-items:center;gap:8px;height:58px}
+.appbar-title{display:flex;align-items:center;gap:8px;font-size:16px;font-weight:660;opacity:0;transform:translateY(8px);transition:.3s var(--ease);white-space:nowrap}
+.appbar.stuck .appbar-title{opacity:1;transform:none}
+.mini-batt{width:26px;height:13px;border:1.6px solid var(--txt-2);border-radius:4px;position:relative;flex:none}
+.mini-batt::after{content:"";position:absolute;right:-4px;top:3.5px;width:2.4px;height:4px;background:var(--txt-2);border-radius:0 2px 2px 0}
+.mini-batt i{position:absolute;left:1.4px;top:1.4px;bottom:1.4px;border-radius:2px;background:var(--green);transition:width .6s var(--ease),background .3s}
+.appbar-actions{display:flex;gap:2px;margin-left:auto}
+.icon-btn{width:40px;height:40px;border:0;border-radius:50%;background:transparent;color:var(--txt);
+  display:grid;place-items:center;cursor:pointer;transition:background .2s var(--ease),transform .15s var(--ease)}
+.icon-btn:hover{background:var(--surface-3)}
+.icon-btn:active{transform:scale(.88)}
+.icon-btn.busy{animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.hero-title{padding:10px 0 20px}
+.hero-title h1{margin:0;font-size:34px;line-height:1.14;font-weight:770;letter-spacing:-.038em;transform-origin:left center;transition:transform .18s linear,opacity .18s linear}
+.hero-title p{margin:9px 0 0;color:var(--txt-2);font-size:14px}
+.live-pill{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:650;color:var(--green);
+  background:var(--green-soft);padding:4px 10px 4px 8px;border-radius:99px;margin-left:6px;vertical-align:2px}
+.dot{width:6px;height:6px;border-radius:50%;background:currentColor;animation:live 2.2s infinite}
+@keyframes live{0%{box-shadow:0 0 0 0 color-mix(in srgb,currentColor 55%,transparent)}70%{box-shadow:0 0 0 7px transparent}100%{box-shadow:0 0 0 0 transparent}}
+
+.card{background:var(--surface);backdrop-filter:blur(22px) saturate(160%);-webkit-backdrop-filter:blur(22px) saturate(160%);
+  border-radius:var(--r-xl);padding:20px;margin-bottom:14px;
+  box-shadow:var(--shadow);border:1px solid var(--line);animation:rise .55s var(--ease) backwards}
+@keyframes rise{from{opacity:0;transform:translateY(18px) scale(.985)}to{opacity:1;transform:none}}
+.card-head{display:flex;align-items:center;gap:11px;margin-bottom:16px}
+.card-head h2{margin:0;font-size:16.5px;font-weight:680;letter-spacing:-.024em}
+.card-head .sub{margin:2px 0 0;font-size:12.5px;color:var(--txt-3)}
+.head-ico{width:36px;height:36px;border-radius:13px;display:grid;place-items:center;flex:none}
+.spacer{flex:1}
+
+.hero-card{position:relative;overflow:hidden;text-align:center;padding:26px 20px 20px;box-shadow:var(--shadow-lg)}
+.hero-card::after{content:"";position:absolute;left:50%;top:-70px;width:380px;height:380px;transform:translateX(-50%);
+  background:radial-gradient(circle,var(--glow),transparent 66%);pointer-events:none;transition:background .6s var(--ease)}
+.hero-card.charging::after{animation:breathe 3.4s ease-in-out infinite}
+@keyframes breathe{0%,100%{opacity:1}50%{opacity:.55}}
+.ring-wrap{position:relative;width:238px;height:238px;margin:0 auto;z-index:1}
+.ring-wrap::before{content:"";position:absolute;inset:-16px;border-radius:50%;opacity:0;filter:blur(14px);
+  background:conic-gradient(from 0deg,transparent 0deg,color-mix(in srgb,var(--green) 60%,transparent) 90deg,transparent 200deg);
+  animation:spin 3.6s linear infinite;transition:opacity .6s var(--ease)}
+.hero-card.charging .ring-wrap::before{opacity:.9}
+.ring-wrap svg{transform:rotate(-90deg);overflow:visible;position:relative}
+.ring-bg{stroke:var(--surface-3)}
+.ring-fg{transition:stroke-dashoffset 1.1s var(--ease)}
+.ring-ghost{opacity:.4;transition:stroke-dashoffset 1.1s var(--ease)}
+.ring-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.pct{font-size:62px;font-weight:780;letter-spacing:-.055em;line-height:1;font-variant-numeric:tabular-nums}
+.pct span{font-size:24px;font-weight:600;margin-left:1px;color:var(--txt-2)}
+.pct-sub{font-size:12.5px;color:var(--txt-3);margin-top:8px;max-width:168px;line-height:1.42}
+.trend{font-size:12.5px;font-weight:660;margin-top:7px;font-variant-numeric:tabular-nums}
+.chip{display:inline-flex;align-items:center;gap:7px;padding:9px 18px 9px 13px;border-radius:99px;
+  font-size:13.5px;font-weight:660;margin-top:16px;position:relative;z-index:1;transition:.35s var(--ease)}
+.bolt-anim{animation:pulse 1.4s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.85)}}
+
+/* thanh đo công suất */
+.speed{margin-top:16px;background:var(--surface-2);border:1px solid var(--line);border-radius:var(--r-lg);
+  padding:13px 15px 11px;position:relative;z-index:1;text-align:left}
+.speed-head{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:640;color:var(--txt-2)}
+.speed-head b{margin-left:auto;font-size:16px;font-weight:720;color:var(--txt);font-variant-numeric:tabular-nums;letter-spacing:-.03em}
+.speed-track{position:relative;height:11px;border-radius:99px;background:var(--surface-3);margin:11px 0 7px;overflow:hidden}
+.speed-track i{position:absolute;left:0;top:0;bottom:0;width:0;border-radius:99px;overflow:hidden;
+  background:linear-gradient(90deg,var(--green),var(--green-2));transition:width .8s var(--ease),background .4s}
+.speed-track i::after{content:"";position:absolute;inset:0;transform:translateX(-100%);
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.5),transparent);animation:sweep 1.9s var(--ease) infinite}
+@keyframes sweep{to{transform:translateX(100%)}}
+.speed-track u{position:absolute;top:0;bottom:0;width:2px;background:var(--surface-solid);opacity:.85}
+.speed-scale{display:flex;justify-content:space-between;font-size:10.5px;color:var(--txt-3);font-variant-numeric:tabular-nums}
+
+.hero-foot{display:flex;gap:9px;margin-top:14px;position:relative;z-index:1}
+.hero-foot div{flex:1;background:var(--surface-2);border-radius:var(--r-md);padding:11px 8px;border:1px solid var(--line)}
+.hero-foot b{display:block;font-size:15px;font-weight:690;font-variant-numeric:tabular-nums;letter-spacing:-.022em}
+.hero-foot small{display:block;color:var(--txt-3);font-size:10.8px;margin-top:3px}
+
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stat{background:var(--surface-2);border:1px solid var(--line);border-radius:var(--r-lg);padding:14px 15px;transition:transform .2s var(--ease)}
+.stat:active{transform:scale(.975)}
+.stat .lbl{display:flex;align-items:center;gap:7px;color:var(--txt-2);font-size:12.5px;font-weight:540}
+.stat .val{font-size:20px;font-weight:710;margin-top:8px;letter-spacing:-.034em;font-variant-numeric:tabular-nums}
+.stat .val em{font-style:normal;font-size:12.5px;font-weight:560;color:var(--txt-2);margin-left:3px}
+.stat .hint{font-size:11.5px;color:var(--txt-3);margin-top:3px;line-height:1.45}
+.bar{height:6px;border-radius:99px;background:var(--surface-3);overflow:hidden;margin-top:9px}
+.bar i{display:block;height:100%;border-radius:99px;transition:width .9s var(--ease)}
+
+.chart-box{position:relative;width:100%;height:190px;touch-action:pan-y}
+.chart-box svg{width:100%;height:100%;display:block}
+.axis{fill:var(--txt-3);font-size:10px;font-weight:540;font-family:inherit}
+.gridline{stroke:var(--line);stroke-width:1;stroke-dasharray:2 6}
+.tip{position:absolute;pointer-events:none;background:var(--txt);color:var(--bg);font-size:11.5px;font-weight:600;
+  padding:6px 10px;border-radius:10px;transform:translate(-50%,-135%);white-space:nowrap;opacity:0;transition:opacity .15s;z-index:5}
+html[data-theme="dark"] .tip{background:var(--surface-4);color:var(--txt)}
+.segs{display:flex;gap:3px;background:var(--surface-3);padding:3px;border-radius:99px;font-size:12px}
+.segs button{border:0;background:transparent;color:var(--txt-2);font:inherit;font-weight:630;padding:6px 11px;border-radius:99px;cursor:pointer;transition:.25s var(--ease)}
+.segs button.on{background:var(--surface-solid);color:var(--txt);box-shadow:0 1px 4px rgba(0,0,0,.1)}
+.legend{display:flex;gap:14px;margin-top:12px;font-size:11.5px;color:var(--txt-2);flex-wrap:wrap;align-items:center}
+.legend i{width:9px;height:9px;border-radius:3px;display:inline-block;margin-right:6px;vertical-align:-1px}
+
+.ai-card{position:relative;overflow:hidden}
+.ai-card::before{content:"";position:absolute;inset:0;border-radius:var(--r-xl);padding:1.3px;
+  background:linear-gradient(135deg,var(--accent),var(--violet) 45%,var(--green));
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;opacity:.55;pointer-events:none}
+.prog{position:absolute;top:0;left:0;height:2.5px;width:0;background:linear-gradient(90deg,var(--accent),var(--violet));
+  transition:width .3s linear,opacity .4s;border-radius:0 99px 99px 0;z-index:3}
+.live-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);
+  border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden;margin-bottom:14px}
+.live-strip div{background:var(--surface-2);padding:11px 6px;text-align:center}
+.live-strip small{display:block;color:var(--txt-3);font-size:10.5px;margin-bottom:4px}
+.live-strip b{font-size:14px;font-weight:690;font-variant-numeric:tabular-nums;letter-spacing:-.022em}
+.ai-summary{font-size:14.8px;line-height:1.66;color:var(--txt);margin:0}
+.stamp{display:flex;align-items:center;gap:7px;flex-wrap:wrap;font-size:11.5px;color:var(--txt-3);margin-top:10px}
+.badge{font-size:10.5px;font-weight:700;padding:3px 8px;border-radius:7px;margin-left:2px}
+.ai-score{display:flex;align-items:center;gap:14px;background:var(--surface-2);border:1px solid var(--line);border-radius:var(--r-lg);padding:14px;margin:14px 0}
+.score-ring{position:relative;width:60px;height:60px;flex:none}
+.score-ring svg{transform:rotate(-90deg)}
+.score-ring b{position:absolute;inset:0;display:grid;place-items:center;font-size:17px;font-weight:740;font-variant-numeric:tabular-nums}
+.rec{display:flex;gap:12px;padding:13px 0;border-top:1px solid var(--line)}
+.rec:first-child{border-top:0}
+.rec-ico{width:32px;height:32px;border-radius:11px;flex:none;display:grid;place-items:center}
+.rec b{display:flex;align-items:center;gap:7px;flex-wrap:wrap;font-size:14px;font-weight:650;margin-bottom:3px}
+.rec p{margin:0;font-size:13.5px;color:var(--txt-2);line-height:1.55}
+.window-card{display:flex;align-items:center;gap:13px;background:var(--accent-soft);border-radius:var(--r-lg);padding:14px;margin-top:14px}
+.window-card b{display:block;font-size:14.5px;font-weight:670}
+.window-card small{color:var(--txt-2);font-size:12.5px}
+.btn{border:0;border-radius:99px;font:inherit;font-weight:650;font-size:13.5px;padding:12px 20px;cursor:pointer;
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:.2s var(--ease)}
+.btn:active{transform:scale(.965)}
+.btn:disabled{opacity:.5;cursor:default}
+.btn-primary{background:linear-gradient(135deg,var(--accent),var(--violet));color:#fff;box-shadow:0 6px 18px color-mix(in srgb,var(--violet) 28%,transparent)}
+.btn-ghost{background:var(--surface-3);color:var(--txt)}
+.btn-row{display:flex;gap:9px;margin-top:16px}
+.btn-row .btn{flex:1}
+.chips{display:flex;gap:7px;overflow-x:auto;margin-top:14px;padding-bottom:2px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chips button{flex:none;border:1px solid var(--line);background:var(--surface-2);color:var(--txt-2);
+  font:inherit;font-size:12.5px;font-weight:570;padding:8px 14px;border-radius:99px;cursor:pointer;transition:.2s var(--ease)}
+.chips button:hover{background:var(--surface-3);color:var(--txt)}
+.thread{display:flex;flex-direction:column;gap:9px;margin-top:12px}
+.msg{max-width:88%;padding:11px 14px;border-radius:18px;font-size:13.8px;line-height:1.6;white-space:pre-wrap;word-break:break-word;animation:rise .3s var(--ease) backwards}
+.msg.me{align-self:flex-end;background:var(--accent);color:#fff;border-bottom-right-radius:6px}
+.msg.ai{align-self:flex-start;background:var(--surface-2);border:1px solid var(--line);border-bottom-left-radius:6px}
+.ask{display:flex;gap:8px;margin-top:12px}
+.ask input{flex:1;border:1px solid var(--line);background:var(--surface-2);color:var(--txt);border-radius:99px;
+  padding:13px 18px;font:inherit;font-size:14px;outline:none;transition:.2s var(--ease);min-width:0}
+.ask input:focus{border-color:var(--accent);background:var(--surface-solid);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 14%,transparent)}
+.skel{height:13px;border-radius:7px;background:linear-gradient(90deg,var(--surface-3) 25%,var(--surface-2) 50%,var(--surface-3) 75%);
+  background-size:200% 100%;animation:sh 1.25s infinite;margin-bottom:9px}
+@keyframes sh{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+.row{display:flex;align-items:center;gap:13px;padding:13px 0;border-top:1px solid var(--line)}
+.row:first-of-type{border-top:0}
+.row .txt{flex:1;min-width:0}
+.row .txt b{display:block;font-size:14.3px;font-weight:610}
+.row .txt small{color:var(--txt-3);font-size:12.3px}
+.row input[type=number],.row input[type=password],.row input[type=text]{
+  width:112px;border:1px solid var(--line);background:var(--surface-2);color:var(--txt);border-radius:12px;
+  padding:10px 12px;font:inherit;font-size:13.5px;text-align:right;outline:none}
+.row input:focus{border-color:var(--accent)}
+.sw{position:relative;width:51px;height:30px;flex:none}
+.sw input{opacity:0;width:0;height:0;position:absolute}
+.sw span{position:absolute;inset:0;background:var(--surface-4);border-radius:99px;transition:.3s var(--ease);cursor:pointer}
+.sw span::after{content:"";position:absolute;width:24px;height:24px;left:3px;top:3px;background:#fff;border-radius:50%;
+  transition:.3s var(--ease);box-shadow:0 1px 4px rgba(0,0,0,.22)}
+.sw input:checked+span{background:var(--accent)}
+.sw input:checked+span::after{transform:translateX(21px)}
+.banner{display:flex;gap:11px;background:var(--amber-soft);border-radius:var(--r-lg);padding:14px;margin-bottom:14px;
+  font-size:12.8px;line-height:1.55;border:1px solid var(--line);animation:rise .5s var(--ease) backwards}
+.foot{text-align:center;color:var(--txt-3);font-size:11.2px;padding:6px 0 4px;line-height:1.75}
+.hidden{display:none!important}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translate(-50%,20px);
+  background:var(--txt);color:var(--bg);font-size:13px;font-weight:590;padding:12px 20px;border-radius:99px;
+  opacity:0;pointer-events:none;transition:.32s var(--ease);z-index:99;max-width:88vw;text-align:center}
+html[data-theme="dark"] .toast{background:var(--surface-4);color:var(--txt)}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+@media (prefers-reduced-motion:reduce){.aurora,.ring-wrap::before,.speed-track i::after{animation:none}}
+</style>
+</head>
+<body>
+<div class="aurora"></div>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13.4 2.2 5.6 12.5a.7.7 0 0 0 .56 1.12h4.3l-1.2 8.06a.35.35 0 0 0 .62.27l7.9-10.35a.7.7 0 0 0-.56-1.12h-4.35l1.15-7.99a.35.35 0 0 0-.62-.29Z" fill="currentColor"/></symbol>
+<symbol id="i-battery" viewBox="0 0 24 24"><rect x="2" y="7" width="17" height="10" rx="3.4" stroke="currentColor" stroke-width="1.7" fill="none"/><path d="M21 10.5v3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><rect x="4.4" y="9.4" width="8" height="5.2" rx="1.6" fill="currentColor"/></symbol>
+<symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 20.3s-7.6-4.6-7.6-9.8A4.5 4.5 0 0 1 12 7.6a4.5 4.5 0 0 1 7.6 2.9c0 5.2-7.6 9.8-7.6 9.8Z" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linejoin="round"/></symbol>
+<symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.6" stroke="currentColor" stroke-width="1.7" fill="none"/><path d="M12 7.4V12l3.1 1.9" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+<symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 19V5M4 19h16" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M7.5 15.5l3.4-4.2 3 2.4 4.1-5.4" stroke="currentColor" stroke-width="1.9" fill="none" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+<symbol id="i-ai" viewBox="0 0 24 24"><path d="M12 3.2l1.65 4.35a4 4 0 0 0 2.3 2.3L20.3 11.5l-4.35 1.65a4 4 0 0 0-2.3 2.3L12 19.8l-1.65-4.35a4 4 0 0 0-2.3-2.3L3.7 11.5l4.35-1.65a4 4 0 0 0 2.3-2.3L12 3.2Z" fill="currentColor"/><circle cx="18.7" cy="5.1" r="1.7" fill="currentColor" opacity=".6"/></symbol>
+<symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.1" stroke="currentColor" stroke-width="1.7" fill="none"/><path d="M19.3 14.4a1.5 1.5 0 0 0 .3 1.66l.05.05a1.8 1.8 0 1 1-2.55 2.55l-.05-.05a1.5 1.5 0 0 0-1.66-.3 1.5 1.5 0 0 0-.91 1.38v.14a1.8 1.8 0 1 1-3.6 0v-.07a1.5 1.5 0 0 0-.98-1.38 1.5 1.5 0 0 0-1.66.3l-.05.05a1.8 1.8 0 1 1-2.55-2.55l.05-.05a1.5 1.5 0 0 0 .3-1.66 1.5 1.5 0 0 0-1.38-.91H4.3a1.8 1.8 0 1 1 0-3.6h.07a1.5 1.5 0 0 0 1.38-.98 1.5 1.5 0 0 0-.3-1.66l-.05-.05A1.8 1.8 0 1 1 7.95 4.8l.05.05a1.5 1.5 0 0 0 1.66.3h.07a1.5 1.5 0 0 0 .91-1.38V3.6a1.8 1.8 0 1 1 3.6 0v.07a1.5 1.5 0 0 0 .91 1.38 1.5 1.5 0 0 0 1.66-.3l.05-.05a1.8 1.8 0 1 1 2.55 2.55l-.05.05a1.5 1.5 0 0 0-.3 1.66v.07a1.5 1.5 0 0 0 1.38.91h.14a1.8 1.8 0 1 1 0 3.6h-.07a1.5 1.5 0 0 0-1.38.91Z" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+<symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.6-5.9" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/><path d="M20 4v4.4h-4.4" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+<symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.4A8.5 8.5 0 0 1 9.6 4 8.6 8.6 0 1 0 20 14.4Z" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linejoin="round"/></symbol>
+<symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.1" stroke="currentColor" stroke-width="1.7" fill="none"/><path d="M12 2.6v2.2M12 19.2v2.2M2.6 12h2.2M19.2 12h2.2M5.4 5.4l1.6 1.6M17 17l1.6 1.6M18.6 5.4 17 7M7 17l-1.6 1.6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></symbol>
+<symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3 5 5.9v5.3c0 4.3 2.9 8.3 7 9.5 4.1-1.2 7-5.2 7-9.5V5.9L12 3Z" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linejoin="round"/><path d="M9 12.1l2.1 2.1 4-4.2" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+<symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.7" stroke="currentColor" stroke-width="1.7" fill="none"/><path d="M12 11v5.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="8.1" r="1.15" fill="currentColor"/></symbol>
+<symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 4.3 2.9 19.4h18.2L12 4.3Z" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linejoin="round"/><path d="M12 10v4.1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="16.7" r="1.05" fill="currentColor"/></symbol>
+<symbol id="i-trend" viewBox="0 0 24 24"><path d="M3.5 16.5 9 11l3.4 3.4L20.5 6" stroke="currentColor" stroke-width="1.9" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M15.6 6h4.9v4.9" stroke="currentColor" stroke-width="1.9" fill="none" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+<symbol id="i-send" viewBox="0 0 24 24"><path d="M4 11.8 20 4l-7.8 16-2-6.2-6.2-2Z" fill="currentColor"/></symbol>
+<symbol id="i-plug" viewBox="0 0 24 24"><path d="M9 3v5M15 3v5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M6.5 8h11v3.2a5.5 5.5 0 0 1-11 0V8Z" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linejoin="round"/><path d="M12 16.7V21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+<symbol id="i-cycle" viewBox="0 0 24 24"><path d="M4.5 9.5A8 8 0 0 1 18.4 7" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/><path d="M19.5 14.5A8 8 0 0 1 5.6 17" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/><path d="M18.9 3.6V7.4h-3.8M5.1 20.4v-3.8h3.8" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+<symbol id="i-brain" viewBox="0 0 24 24"><path d="M12 5.2a3 3 0 0 0-5.7-1.3A2.8 2.8 0 0 0 3.9 7a3 3 0 0 0-.4 5.3A3 3 0 0 0 6 17a3 3 0 0 0 6 .6Z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M12 5.2a3 3 0 0 1 5.7-1.3A2.8 2.8 0 0 1 20.1 7a3 3 0 0 1 .4 5.3A3 3 0 0 1 18 17a3 3 0 0 1-6 .6Z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/></symbol>
+</defs></svg>
+
+<header class="appbar" id="appbar">
+  <div class="wrap appbar-row">
+    <div class="appbar-title" id="barTitle"><span class="mini-batt"><i id="miniFill" style="width:0"></i></span><span id="barText">Battery Brief</span></div>
+    <div class="appbar-actions">
+      <button class="icon-btn" id="btnTheme" title="Đổi giao diện"><svg width="21" height="21"><use href="#i-moon"/></svg></button>
+      <button class="icon-btn" id="btnSettings" title="Cài đặt"><svg width="21" height="21"><use href="#i-settings"/></svg></button>
+      <button class="icon-btn" id="btnRefresh" title="Làm mới"><svg width="21" height="21"><use href="#i-refresh"/></svg></button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="hero-title">
+    <h1 id="greet">Chào bạn</h1>
+    <p id="todayLine">Đang đọc dữ liệu pin thiết bị…</p>
+  </div>
+
+  <div class="banner hidden" id="simBanner">
+    <svg width="20" height="20" style="flex:none;color:var(--amber)"><use href="#i-alert"/></svg>
+    <div><b>Chế độ mô phỏng.</b> Trình duyệt này không hỗ trợ Battery Status API (Firefox, Safari hoặc trang chạy qua HTTP). Số liệu bên dưới là dữ liệu giả lập. Hãy mở bằng Chrome, Edge hoặc Samsung Internet qua HTTPS để xem pin thật.</div>
+  </div>
+
+  <!-- HERO -->
+  <section class="card hero-card" id="heroCard" style="animation-delay:.02s">
+    <div class="ring-wrap">
+      <svg viewBox="0 0 236 236" width="236" height="236">
+        <defs>
+          <linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
+            <stop id="gs1" offset="0%" stop-color="#0ba75e"/>
+            <stop id="gs2" offset="100%" stop-color="#41d78f"/>
+          </linearGradient>
+        </defs>
+        <circle class="ring-bg" cx="118" cy="118" r="100" fill="none" stroke-width="14"/>
+        <circle class="ring-ghost" id="ringGhost" cx="118" cy="118" r="100" fill="none" stroke="var(--txt-3)"
+                stroke-width="4" stroke-linecap="round" stroke-dasharray="628.3" stroke-dashoffset="628.3"/>
+        <circle class="ring-fg" id="ring" cx="118" cy="118" r="100" fill="none" stroke="url(#ringGrad)"
+                stroke-width="14" stroke-linecap="round" stroke-dasharray="628.3" stroke-dashoffset="628.3"/>
+      </svg>
+      <div class="ring-center">
+        <div class="pct" id="pct">--<span>%</span></div>
+        <div class="trend" id="trendLine"></div>
+        <div class="pct-sub" id="pctSub">Đang khởi tạo…</div>
+      </div>
+    </div>
+    <div class="chip" id="statusChip" style="background:var(--surface-3);color:var(--txt-2)">
+      <svg width="16" height="16"><use href="#i-battery"/></svg><span id="statusText">Đang khởi tạo</span>
+    </div>
+
+    <div class="speed" id="speedBox">
+      <div class="speed-head">
+        <svg width="15" height="15" id="speedIco" style="color:var(--txt-3)"><use href="#i-bolt"/></svg>
+        <span id="speedName">Đang đo công suất</span><b id="speedW">-- W</b>
+      </div>
+      <div class="speed-track"><i id="speedFill"></i><u id="tick1" style="left:33%"></u><u id="tick2" style="left:55%"></u></div>
+      <div class="speed-scale"><span>0</span><span id="sc1">15 W</span><span id="sc2">25 W</span><span id="sc3">45 W</span></div>
+    </div>
+
+    <div class="hero-foot">
+      <div><b id="hfPower">--</b><small id="hfPowerLbl">Công suất</small></div>
+      <div><b id="hfRate">--</b><small>Tốc độ mỗi giờ</small></div>
+      <div><b id="hfTime">--</b><small id="hfTimeLbl">Thời gian còn lại</small></div>
+    </div>
+  </section>
+
+  <!-- CHI TIẾT -->
+  <section class="card" style="animation-delay:.06s">
+    <div class="card-head">
+      <div class="head-ico" style="background:var(--green-soft);color:var(--green)"><svg width="19" height="19"><use href="#i-battery"/></svg></div>
+      <div><h2>Thông tin pin</h2><p class="sub" id="devLine">Thiết bị của bạn</p></div>
+      <div class="spacer"></div>
+      <span class="live-pill"><i class="dot"></i>Trực tiếp</span>
+    </div>
+    <div class="grid">
+      <div class="stat">
+        <div class="lbl"><svg width="15" height="15"><use href="#i-battery"/></svg>Dung lượng thiết kế</div>
+        <div class="val" id="sCapacity">--<em>mAh</em></div>
+        <div class="hint" id="sCapacityWh">--</div>
+      </div>
+      <div class="stat">
+        <div class="lbl"><svg width="15" height="15"><use href="#i-plug"/></svg>Dung lượng hiện tại</div>
+        <div class="val" id="sNow">--<em>mAh</em></div>
+        <div class="hint" id="sNowHint">Theo mức pin thật</div>
+      </div>
+      <div class="stat">
+        <div class="lbl"><svg width="15" height="15"><use href="#i-heart"/></svg>Tuổi thọ pin</div>
+        <div class="val" id="sHealth">--<em>%</em></div>
+        <div class="bar"><i id="healthBar" style="width:0%;background:var(--green)"></i></div>
+        <div class="hint" id="sHealthTxt">Ước tính</div>
+      </div>
+      <div class="stat">
+        <div class="lbl"><svg width="15" height="15"><use href="#i-cycle"/></svg>Chu kỳ sạc</div>
+        <div class="val" id="sCycles">--</div>
+        <div class="hint">Tích lũy từ khi theo dõi</div>
+      </div>
+      <div class="stat">
+        <div class="lbl"><svg width="15" height="15"><use href="#i-clock"/></svg><span id="sTo20Lbl">Còn lại đến 20%</span></div>
+        <div class="val" id="sTo20">--</div>
+        <div class="hint" id="sTo20Hint">Theo tốc độ hiện tại</div>
+      </div>
+      <div class="stat">
+        <div class="lbl"><svg width="15" height="15"><use href="#i-trend"/></svg>Mức dùng hôm nay</div>
+        <div class="val" id="sToday">--<em>%</em></div>
+        <div class="hint" id="sTodayHint">Từ 00:00</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BIỂU ĐỒ -->
+  <section class="card" style="animation-delay:.1s">
+    <div class="card-head">
+      <div class="head-ico" style="background:var(--accent-soft);color:var(--accent)"><svg width="19" height="19"><use href="#i-chart"/></svg></div>
+      <div><h2>Biểu đồ pin</h2><p class="sub" id="chartSub">Theo thời gian thực</p></div>
+      <div class="spacer"></div>
+      <div class="segs" id="rangeSegs">
+        <button data-r="30" class="on">30 phút</button>
+        <button data-r="360">6 giờ</button>
+        <button data-r="1440">24 giờ</button>
+      </div>
+    </div>
+    <div class="chart-box" id="lineBox"><svg id="lineChart"></svg><div class="tip" id="lineTip"></div></div>
+    <div class="legend">
+      <span><i style="background:var(--green)"></i>Đang sạc</span>
+      <span><i style="background:var(--accent)"></i>Dùng pin</span>
+      <span id="samplesLbl" style="margin-left:auto;color:var(--txt-3)">0 mẫu</span>
+    </div>
+  </section>
+
+  <!-- HỌC THEO GIỜ -->
+  <section class="card" style="animation-delay:.14s">
+    <div class="card-head">
+      <div class="head-ico" style="background:var(--violet-soft);color:var(--violet)"><svg width="19" height="19"><use href="#i-brain"/></svg></div>
+      <div><h2>Thói quen theo giờ</h2><p class="sub" id="learnSub">Mô hình tự học ngay trên máy</p></div>
+    </div>
+    <div class="chart-box" style="height:158px" id="barBox"><svg id="barChart"></svg><div class="tip" id="barTip"></div></div>
+    <div class="legend">
+      <span><i style="background:var(--violet)"></i>Mức xả trung bình mỗi giờ</span>
+      <span><i style="background:var(--green)"></i>Giờ bạn hay sạc</span>
+      <span id="learnLbl" style="margin-left:auto;color:var(--txt-3)">Đang thu thập</span>
+    </div>
+  </section>
+
+  <!-- AI -->
+  <section class="card ai-card" style="animation-delay:.18s">
+    <div class="prog" id="aiProg" style="opacity:0"></div>
+    <div class="card-head">
+      <div class="head-ico" style="background:var(--violet-soft);color:var(--violet)"><svg width="19" height="19"><use href="#i-ai"/></svg></div>
+      <div><h2>Trợ lý pin AI</h2><p class="sub" id="aiModelLbl">Gemini · học theo thời gian thực</p></div>
+      <div class="spacer"></div>
+      <button class="icon-btn" id="btnAiRefresh" title="Phân tích lại"><svg width="19" height="19"><use href="#i-refresh"/></svg></button>
+    </div>
+
+    <div class="live-strip">
+      <div><small>Pin hiện tại</small><b id="lvNow">--</b></div>
+      <div><small>Tốc độ</small><b id="lvRate">--</b></div>
+      <div><small>Còn dùng</small><b id="lvLeft">--</b></div>
+      <div><small>Sau 1 giờ</small><b id="lvNext">--</b></div>
+    </div>
+
+    <div id="aiLoading">
+      <div class="skel" style="width:100%"></div>
+      <div class="skel" style="width:94%"></div>
+      <div class="skel" style="width:62%"></div>
+    </div>
+
+    <div id="aiContent" class="hidden">
+      <p class="ai-summary" id="aiSummary"></p>
+      <div class="stamp">
+        <span id="aiStamp">—</span>
+        <span class="badge hidden" id="aiStale" style="background:var(--amber-soft);color:var(--amber)">Dữ liệu đã đổi · đang cập nhật</span>
+        <span style="margin-left:auto" id="aiNext"></span>
+      </div>
+
+      <div class="ai-score">
+        <div class="score-ring">
+          <svg viewBox="0 0 60 60" width="60" height="60">
+            <circle cx="30" cy="30" r="25" fill="none" stroke="var(--surface-3)" stroke-width="6"/>
+            <circle id="scoreRing" cx="30" cy="30" r="25" fill="none" stroke="var(--violet)" stroke-width="6"
+                    stroke-linecap="round" stroke-dasharray="157.1" stroke-dashoffset="157.1"
+                    style="transition:stroke-dashoffset .9s var(--ease)"/>
+          </svg><b id="scoreVal">--</b>
+        </div>
+        <div style="min-width:0">
+          <b style="font-size:14.5px" id="aiStateTitle">Điểm tối ưu pin</b>
+          <div style="font-size:13px;color:var(--txt-2);line-height:1.5" id="aiForecast"></div>
+        </div>
+      </div>
+
+      <div id="aiRecs"></div>
+
+      <div class="window-card">
+        <svg width="22" height="22" style="color:var(--accent);flex:none"><use href="#i-clock"/></svg>
+        <div><b id="aiWindow">--</b><small>Khung giờ sạc tối ưu do AI đề xuất</small></div>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-primary" id="btnAnalyze"><svg width="17" height="17"><use href="#i-ai"/></svg>Phân tích ngay</button>
+      <button class="btn btn-ghost" id="btnOptimize"><svg width="17" height="17"><use href="#i-shield"/></svg>Mẹo tiết kiệm</button>
+    </div>
+
+    <div class="chips" id="quickChips">
+      <button>Còn dùng được bao lâu?</button>
+      <button>Đang sạc nhanh hay chậm?</button>
+      <button>Khi nào nên cắm sạc?</button>
+      <button>Vì sao pin tụt nhanh?</button>
+      <button>Cách giữ tuổi thọ pin</button>
+    </div>
+
+    <div class="thread" id="thread"></div>
+    <div class="ask">
+      <input id="askInput" type="text" placeholder="Hỏi AI về pin của bạn…" autocomplete="off">
+      <button class="btn btn-primary" id="btnAsk" style="padding:13px 16px"><svg width="18" height="18"><use href="#i-send"/></svg></button>
+    </div>
+  </section>
+
+  <!-- CÀI ĐẶT -->
+  <section class="card hidden" id="settingsCard">
+    <div class="card-head">
+      <div class="head-ico" style="background:var(--surface-3);color:var(--txt-2)"><svg width="19" height="19"><use href="#i-settings"/></svg></div>
+      <div><h2>Cài đặt</h2><p class="sub">Nhập thông số phần cứng để tính chính xác hơn</p></div>
+    </div>
+    <div class="row"><div class="txt"><b>Dung lượng thiết kế</b><small>Xem trong thông số máy, đơn vị mAh</small></div>
+      <input type="number" id="inCap" min="500" max="12000" step="50" value="5000"></div>
+    <div class="row"><div class="txt"><b>Dung lượng thực đo</b><small>Nếu biết, để tính tuổi thọ chính xác</small></div>
+      <input type="number" id="inCapNow" min="0" max="12000" step="10" value="0"></div>
+    <div class="row"><div class="txt"><b>Điện áp danh định</b><small>Thường 3.85 V hoặc 3.87 V</small></div>
+      <input type="number" id="inVolt" min="3" max="5" step="0.01" value="3.85"></div>
+    <div class="row"><div class="txt"><b>Công suất sạc tối đa</b><small>Của củ sạc, dùng để vẽ thang đo W</small></div>
+      <input type="number" id="inMaxW" min="5" max="150" step="1" value="45"></div>
+    <div class="row"><div class="txt"><b>Bảo vệ pin 85%</b><small>Giới hạn mức sạc tối đa</small></div>
+      <label class="sw"><input type="checkbox" id="inProtect"><span></span></label></div>
+    <div class="row"><div class="txt"><b>AI theo thời gian thực</b><small>Tự phân tích lại khi pin thay đổi</small></div>
+      <label class="sw"><input type="checkbox" id="inAuto" checked><span></span></label></div>
+    <div class="row"><div class="txt"><b>Ngưỡng thay đổi pin</b><small>Chênh bao nhiêu phần trăm thì AI chạy lại</small></div>
+      <input type="number" id="inDelta" min="1" max="15" step="1" value="2"></div>
+    <div class="row"><div class="txt"><b>Chu kỳ làm mới tối đa</b><small>Số phút giữa hai lần phân tích định kỳ</small></div>
+      <input type="number" id="inEvery" min="1" max="60" step="1" value="6"></div>
+    <div class="row"><div class="txt"><b>API key Gemini</b><small>Lưu cục bộ trên máy bạn</small></div>
+      <input type="password" id="inKey" placeholder="AIza…"></div>
+    <div class="row"><div class="txt"><b>Xóa dữ liệu đã học</b><small>Xóa toàn bộ lịch sử pin lưu trên máy</small></div>
+      <button class="btn btn-ghost" id="btnClear" style="padding:10px 16px;font-size:13px">Xóa</button></div>
+  </section>
+
+  <p class="foot">
+    Dữ liệu pin thời gian thực từ Battery Status API của trình duyệt.<br>
+    Công suất, chu kỳ và tuổi thọ là giá trị ước tính, không phải số đo phần cứng.
+  </p>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =====================================================================
+   1. CẤU HÌNH
+===================================================================== */
+const BASE = "https://generativelanguage.googleapis.com/v1beta/";
+const DEFAULT_KEY = "AQ.Ab8RN6JQ_oWcMrncQFT-M5G9gwT_wqALufCCRcImHu013vMjQA";
+const MODELS = ["models/gemini-3.5-flash-lite","models/gemini-flash-latest","models/gemini-2.5-flash-lite","models/gemini-2.0-flash"];
+let activeModel = null;
+
+const CHG_EFF = .87;            // hiệu suất sạc: W ở ổ cắm > W vào pin
+const MAX_CHG_SEC = 14*3600;    // quá ngưỡng này coi như số liệu rác
+const MAX_DIS_SEC = 80*3600;
+
+const LS = { hist:"bb_hist_v3", hourly:"bb_hourly_v3", cfg:"bb_cfg_v3", cyc:"bb_cyc_v3" };
+const $ = id => document.getElementById(id);
+const clamp = (v,a,b) => Math.min(b, Math.max(a, v));
+
+function load(k,d){ try{ const v = JSON.parse(localStorage.getItem(k)); return v ?? d; }catch(e){ return d; } }
+function save(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+function blankHours(){ return Array.from({length:24},()=>({d:0,ms:0,cd:0,cms:0})); }
+function esc(s){ return String(s??"").replace(/[<>&]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;"}[c])); }
+
+/* =====================================================================
+   2. TRẠNG THÁI
+===================================================================== */
+let batt=null, simulated=false;
+let hist   = load(LS.hist, []);
+let hourly = load(LS.hourly, blankHours()).map(h=>Object.assign({d:0,ms:0,cd:0,cms:0},h));
+let cycles = load(LS.cyc, 0);
+let cfg = Object.assign({cap:5000,capNow:0,volt:3.85,maxW:45,protect:false,auto:true,theme:"light",delta:2,every:6,key:DEFAULT_KEY},load(LS.cfg,{}));
+let range=30, aiBusy=false, rateEMA=null, segStart=Date.now(), peakW=0, convo=[];
+let ai = { data:null, atLevel:null, atCharging:null, at:0, stale:false };
+let live = { lv:0, ch:false, rate:null, wBatt:null, wIn:null, watt:null, peak:0,
+             left:null, leftSrc:null, to20:null, toTarget:null, next:null, conf:0, rough:false };
+
+/* =====================================================================
+   3. KẾT NỐI PIN
+===================================================================== */
+async function initBattery(){
+  if (navigator.getBattery){
+    try{
+      batt = await navigator.getBattery();
+      ["levelchange","chargingchange","chargingtimechange","dischargingtimechange"].forEach(ev=>{
+        batt.addEventListener(ev, ()=>{ tick(true); });
+      });
+    }catch(e){ batt=null; }
+  }
+  if (!batt){
+    simulated = true; $("simBanner").classList.remove("hidden");
+    let lv=.64, ch=false;
+    batt = {
+      get level(){ return Math.round(lv*100)/100 },   // mô phỏng cả việc trình duyệt làm tròn 1%
+      get charging(){ return ch },
+      get chargingTime(){ return ch ? (lv>=.999?0:(1-lv)/.55*3600) : Infinity },
+      get dischargingTime(){ return ch ? Infinity : lv/.07*3600 },
+      addEventListener(){}
+    };
+    setInterval(()=>{
+      const h=new Date().getHours();
+      const loadF = h>=23||h<6 ? .35 : (h>=19&&h<23) ? 1.5 : 1;
+      if(!ch && lv<=.16) ch=true;
+      if(ch && lv>=.999) ch=false;
+      lv = clamp(lv + (ch ? .00023 : -.00003*loadF), .03, 1);
+    }, 1500);
+  }
+  segStart = firstFlip();
+  tick(true);
+  setInterval(()=>tick(false), 3000);
+  setInterval(paintClock, 1000);
+}
+function firstFlip(){
+  for(let i=hist.length-1;i>0;i--) if(hist[i].c!==hist[i-1].c) return hist[i].t;
+  return hist.length ? hist[0].t : Date.now();
+}
+
+/* =====================================================================
+   4. LẤY MẪU + HỌC
+===================================================================== */
+function tick(force){ sample(force); compute(); render(); maybeAutoAnalyze(); }
+
+function sample(force){
+  const now = Date.now();
+  const s = { t:now, l:+(batt.level*100).toFixed(1), c:!!batt.charging };
+  const prev = hist[hist.length-1];
+
+  if (prev){
+    if (prev.c !== s.c){ segStart = now; rateEMA = null; peakW = 0; live.conf = 0; }
+    const dt = now - prev.t;
+    if (dt>1500 && dt<10*60000 && prev.c===s.c){
+      const h = new Date(now).getHours();
+      if (!s.c){
+        hourly[h].ms += dt;
+        if (prev.l > s.l) hourly[h].d += prev.l - s.l;
+      } else {
+        hourly[h].cms += dt;
+        if (s.l > prev.l){
+          hourly[h].cd += s.l - prev.l;
+          cycles = +(cycles + (s.l-prev.l)/100).toFixed(4);
+          save(LS.cyc, cycles);
+        }
+      }
+      save(LS.hourly, hourly);
+    }
+  }
+
+  const changed = !prev || prev.l!==s.l || prev.c!==s.c;
+  if (force || changed || now - prev.t > 45000){
+    hist.push(s);
+    const cut = now - 26*3600*1000;
+    while (hist.length && hist[0].t < cut) hist.shift();
+    if (hist.length > 5000) hist.splice(0, hist.length-5000);
+    save(LS.hist, hist);
+  }
+}
+
+/* --- bậc nhảy nhỏ nhất mà trình duyệt báo (thường 1%) --- */
+let stepCache = {n:-1, v:1};
+function levelStep(){
+  if (stepCache.n === hist.length) return stepCache.v;
+  let s = Infinity;
+  for (let i=1;i<hist.length;i++){
+    const d = Math.abs(hist[i].l - hist[i-1].l);
+    if (d > .05 && d < s) s = d;
+  }
+  if (!isFinite(s)) s = 1;
+  stepCache = { n:hist.length, v:clamp(s,.1,5) };
+  return stepCache.v;
+}
+
+/* --- hồi quy có trọng số --- */
+function regress(pts){
+  if (pts.length<2) return null;
+  const t1 = pts[pts.length-1].t;
+  let sw=0,sx=0,sy=0,sxy=0,sxx=0;
+  pts.forEach(p=>{
+    const x=(p.t-pts[0].t)/3600000, y=p.l;
+    const w=Math.exp(-((t1-p.t)/1000)/2400)+.25;
+    sw+=w; sx+=w*x; sy+=w*y; sxy+=w*x*y; sxx+=w*x*x;
+  });
+  const den = sw*sxx - sx*sx;
+  if (Math.abs(den) < 1e-9) return null;
+  return (sw*sxy - sx*sy)/den;
+}
+
+/* --- ĐO TỐC ĐỘ: chỉ dùng các điểm pin thực sự đổi mức ---
+   Đây là chỗ sửa lỗi 6000 giờ: trước đây hồi quy chạy trên chuỗi
+   giá trị bị làm tròn nên độ dốc ra gần 0 -> chia ra thời gian vô lý. */
+function estimateRate(){
+  const now = Date.now(), ch = !!batt.charging, step = levelStep();
+  const seg = hist.filter(p => p.c===ch && p.t >= segStart-1500);
+  if (seg.length < 2) return null;
+
+  const ed = []; let pl = null;
+  for (const p of seg){ if (pl===null || p.l!==pl){ ed.push(p); pl = p.l; } }
+  if (ed.length < 2) return null;                      // chưa có bước nhảy nào -> chưa đo được
+
+  let win = ed.filter(p => p.t >= now - 60*60000);
+  if (win.length < 3) win = ed.slice(-3);
+  if (win.length < 2) win = ed.slice(-2);
+
+  const span = (win[win.length-1].t - win[0].t)/60000;  // phút
+  const dl   = Math.abs(win[win.length-1].l - win[0].l);
+  if (span < .75 || dl < step*.99) return null;
+
+  let r = regress(win);
+  if (r===null || !isFinite(r)) r = (win[win.length-1].l - win[0].l)/(span/60);
+
+  // trần vật lý: không thể nhanh hơn 1 bậc trên khoảng lặng gần nhất
+  const gap = now - ed[ed.length-1].t;
+  const cap = step*3600000/Math.max(gap, 45000);
+  if (Math.abs(r) > cap) r = Math.sign(r)*cap;
+  if (Math.abs(r) > 300) r = Math.sign(r)*300;
+
+  const q = clamp(Math.round(Math.min(1,span/25)*55 + Math.min(1,dl/(step*4))*45), 5, 99);
+  return { r, q };
+}
+
+/* --- lọc số liệu thời gian của trình duyệt --- */
+function apiTime(ch){
+  const v = ch ? batt.chargingTime : batt.dischargingTime;
+  if (v === 0) return ch ? 0 : null;
+  if (!isFinite(v) || v < 0) return null;
+  if (ch  && (v < 45  || v > MAX_CHG_SEC)) return null;
+  if (!ch && (v < 120 || v > MAX_DIS_SEC)) return null;
+  return v;
+}
+function sane(sec, ch){
+  if (sec===null || !isFinite(sec)) return null;
+  if (sec <= 0) return 0;
+  if (ch && sec > MAX_CHG_SEC) return null;
+  if (!ch && sec > MAX_DIS_SEC) return null;
+  return sec;
+}
+
+/* --- sạc chậm dần khi pin cao, phải tính theo từng đoạn --- */
+function taperF(l){ return l < 80 ? 1 : l < 90 ? .62 : l < 95 ? .42 : .28; }
+function etaCharge(from, to, rate){
+  if (rate===null || rate <= .4 || from >= to) return null;
+  const r0 = rate/taperF(from);                 // quy về tốc độ "chuẩn" dưới 80%
+  if (!(r0 > 0)) return null;
+  let sec = 0, cur = from;
+  for (const b of [80,90,95,100]){
+    if (cur >= b || cur >= to) break;
+    const stop = Math.min(b, to);
+    sec += (stop-cur)/(r0*taperF(cur))*3600;
+    cur = stop;
+  }
+  if (cur < to) sec += (to-cur)/(r0*taperF(cur))*3600;
+  return sec;
+}
+
+function compute(){
+  const lv = +(batt.level*100).toFixed(1);
+  const ch = !!batt.charging;
+  const wh = capacityWh();
+
+  const est = estimateRate();
+  if (est){
+    rateEMA = rateEMA===null ? est.r : rateEMA*.6 + est.r*.4;
+    live.conf = est.q;
+  } else if (rateEMA===null){ live.conf = 0; }
+
+  let rate = rateEMA;
+  if (rate!==null){                      // dấu phải khớp trạng thái, nếu không thì coi như chưa biết
+    if (ch && rate <= .05) rate = null;
+    if (!ch && rate >= -.03) rate = null;
+  }
+
+  live.lv=lv; live.ch=ch; live.rate=rate;
+  live.rough = false;
+  live.wBatt = rate!==null ? +(Math.abs(rate)/100*wh).toFixed(2) : null;
+
+  const leftApi = apiTime(ch);
+  // chưa kịp đo tốc độ -> suy công suất ngay từ thời gian hệ thống báo,
+  // nhờ vậy nhận diện được sạc nhanh/chậm chỉ sau vài giây
+  if (live.wBatt===null && leftApi && leftApi > 60){
+    const need = ch ? (100-lv)/100*wh : lv/100*wh;
+    live.wBatt = +(need/(leftApi/3600)).toFixed(2);
+    live.rough = true;
+  }
+  live.wIn  = (ch && live.wBatt!==null) ? +(live.wBatt/CHG_EFF).toFixed(2) : null;
+  live.watt = ch ? live.wIn : live.wBatt;
+  if (ch && live.wIn) peakW = Math.max(peakW, live.wIn);
+  if (!ch) peakW = 0;
+  live.peak = +peakW.toFixed(2);
+
+  // thời gian còn lại
+  let leftCalc = null;
+  if (rate!==null){
+    if (ch) leftCalc = etaCharge(lv, 100, rate);
+    else if (Math.abs(rate) >= .25) leftCalc = lv/Math.abs(rate)*3600;
+  }
+  let left=null, src=null;
+  if (ch && lv >= 99.5){ left = 0; src = "đầy"; }
+  else if (leftCalc!==null && live.conf >= 35){ left = leftCalc; src = "đo trực tiếp"; }
+  else if (leftApi!==null && leftApi > 0){ left = leftApi; src = "hệ thống báo"; }
+  else if (leftCalc!==null){ left = leftCalc; src = "đo sơ bộ"; }
+  live.left = sane(left, ch);
+  live.leftSrc = live.left===null ? null : src;
+
+  live.to20 = sane((!ch && rate!==null && rate <= -.25 && lv > 20) ? (lv-20)/Math.abs(rate)*3600 : null, false);
+  const target = cfg.protect ? 85 : 80;
+  live.toTarget = ch ? sane(etaCharge(lv, target, rate), true) : null;
+
+  // dự báo 1 giờ tới
+  const learned = hourlyRates()[(new Date().getHours()+1)%24];
+  live.next = null;
+  if (rate!==null){
+    const model = (!ch && learned!==null) ? -learned : rate;
+    live.next = clamp(lv + (rate*.6 + model*.4), 0, 100);
+  }
+}
+
+function capacityWh(){ return (cfg.cap*cfg.volt)/1000; }
+function hourlyRates(){ return hourly.map(h=>h.ms>150000 ? +(h.d/(h.ms/3600000)).toFixed(2) : null); }
+function chargeHours(){ return hourly.map(h=>h.cms>150000 ? +(h.cms/60000).toFixed(0) : 0); }
+
+/* phân loại tốc độ sạc theo công suất ở phía ổ cắm */
+function chargeClass(w, lv, rough){
+  const tail = lv>=85 ? " · đang giảm dòng để bảo vệ pin" : "";
+  const d = (rough?"≈ ":"") + w.toFixed(1) + " W" + tail;
+  if (w >= 36) return {t:"Sạc siêu nhanh 2.0", c:"green",  d};
+  if (w >= 19) return {t:"Sạc siêu nhanh",     c:"green",  d};
+  if (w >= 11) return {t:"Sạc nhanh",          c:"green",  d};
+  if (w >= 5)  return {t:"Sạc thường",         c:"accent", d};
+  return {t:"Sạc chậm", c:"amber", d:d+" · nguồn yếu hoặc cáp kém"};
+}
+function healthEstimate(){
+  if (cfg.capNow>300 && cfg.capNow<=cfg.cap*1.2)
+    return { v:clamp(+(cfg.capNow/cfg.cap*100).toFixed(1),0,100), real:true };
+  return { v:Math.max(60,+(100-cycles*.035).toFixed(1)), real:false };
+}
+function fmtDur(sec){
+  if (sec===null || !isFinite(sec)) return "Đang đo";
+  if (sec <= 30) return "Xong";
+  const h=Math.floor(sec/3600), m=Math.round((sec%3600)/60);
+  if (h===0) return m+" phút";
+  return h+" giờ"+(m?" "+m+" phút":"");
+}
+function fmtShort(sec){
+  if (sec===null || !isFinite(sec)) return "…";
+  if (sec <= 30) return "0p";
+  const h=Math.floor(sec/3600), m=Math.round((sec%3600)/60);
+  return h===0 ? m+"p" : h+"g"+(m?" "+m+"p":"");
+}
+function usedToday(){
+  const st=new Date(); st.setHours(0,0,0,0);
+  const pts = hist.filter(p=>p.t>=st.getTime());
+  let u=0; for(let i=1;i<pts.length;i++) if(pts[i].l<pts[i-1].l) u+=pts[i-1].l-pts[i].l;
+  return +u.toFixed(1);
+}
+
+/* =====================================================================
+   5. RENDER
+===================================================================== */
+function render(){
+  const lv = Math.round(live.lv), ch = live.ch, rate = live.rate;
+  const full = ch && lv >= 100;
+
+  const key = ch ? "green" : lv<=15 ? "red" : lv<=30 ? "amber" : "accent";
+  const css = getComputedStyle(document.documentElement);
+  $("gs1").setAttribute("stop-color", css.getPropertyValue("--"+key).trim());
+  $("gs2").setAttribute("stop-color", css.getPropertyValue("--"+key+"-2").trim());
+  document.documentElement.style.setProperty("--glow","color-mix(in srgb,var(--"+key+") 24%, transparent)");
+  $("heroCard").classList.toggle("charging", ch && !full);
+
+  const C = 2*Math.PI*100;
+  $("ring").setAttribute("stroke-dasharray", C.toFixed(1));
+  $("ring").setAttribute("stroke-dashoffset", (C*(1-lv/100)).toFixed(1));
+
+  const gh = $("ringGhost");
+  if (live.next!==null && Math.abs(live.next-lv)>1.2){
+    gh.style.display=""; gh.setAttribute("stroke-dasharray", C.toFixed(1));
+    gh.setAttribute("stroke-dashoffset",(C*(1-live.next/100)).toFixed(1));
+    gh.setAttribute("stroke", css.getPropertyValue("--txt-3").trim());
+  } else gh.style.display="none";
+
+  $("pct").innerHTML = lv+"<span>%</span>";
+  const tl = $("trendLine");
+  if (rate!==null){
+    tl.textContent = (rate>0?"▲ +":"▼ ")+Math.abs(rate).toFixed(1)+"%/giờ";
+    tl.style.color = rate>0 ? "var(--green)" : "var(--txt-2)";
+  } else { tl.textContent = ch ? "Đang đo tốc độ sạc…" : "Đang đo tốc độ…"; tl.style.color="var(--txt-3)"; }
+
+  // trạng thái + nhận diện tốc độ sạc
+  let info;
+  if (full) info = {t:"Đã sạc đầy", c:"green", d:"Bạn có thể rút sạc"};
+  else if (ch){
+    const w = (lv>=82 && peakW>0) ? peakW : live.wIn;
+    info = w ? chargeClass(w, lv, live.rough)
+             : {t:"Đang nhận diện tốc độ sạc", c:"green", d:"Cần khoảng 30 giây để đo"};
+  }
+  else info = lv<=15 ? {t:"Pin yếu", c:"red", d:"Nên cắm sạc sớm"}
+           : lv<=30 ? {t:"Sắp hết pin", c:"amber", d:"Đang dùng pin"}
+           : {t:"Đang dùng pin", c:"accent", d:"Không kết nối nguồn"};
+
+  const chip = $("statusChip");
+  chip.style.background = "var(--"+info.c+"-soft)";
+  chip.style.color = "var(--"+info.c+")";
+  chip.querySelector("use").setAttribute("href", ch?"#i-bolt":"#i-battery");
+  chip.querySelector("svg").classList.toggle("bolt-anim", ch && !full);
+  $("statusText").textContent = info.t;
+  $("pctSub").textContent = info.d + (live.leftSrc && live.leftSrc!=="đầy" ? " · nguồn: "+live.leftSrc : "");
+
+  paintSpeed(ch, lv, info);
+
+  $("hfPower").textContent = live.watt!==null ? (live.rough?"≈":"")+live.watt.toFixed(1)+" W" : "Đang đo";
+  $("hfPowerLbl").textContent = ch ? "Công suất vào máy" : "Mức tiêu thụ";
+  $("hfRate").textContent  = rate!==null ? (rate>0?"+":"−")+Math.abs(rate).toFixed(1)+" %" : "--";
+  $("hfTime").textContent  = full ? "Đã đầy" : fmtDur(live.left);
+  $("hfTimeLbl").textContent = ch ? "Sạc đầy sau" : "Thời gian còn lại";
+
+  $("sCapacity").innerHTML = cfg.cap.toLocaleString("vi-VN")+"<em>mAh</em>";
+  $("sCapacityWh").textContent = capacityWh().toFixed(1)+" Wh ở "+cfg.volt+" V";
+  $("sNow").innerHTML = Math.round(cfg.cap*lv/100).toLocaleString("vi-VN")+"<em>mAh</em>";
+  $("sNowHint").textContent = live.watt!==null ? (ch?"Đang nạp ":"Đang tiêu ")+live.watt.toFixed(1)+" W" : "Theo mức pin thật";
+
+  const hp = healthEstimate();
+  $("sHealth").innerHTML = hp.v+"<em>%</em>";
+  $("healthBar").style.width = hp.v+"%";
+  $("healthBar").style.background = hp.v>=90?"var(--green)":hp.v>=80?"var(--amber)":"var(--red)";
+  $("sHealthTxt").textContent = hp.real ? "Từ dung lượng thực đo"
+    : hp.v>=90 ? "Ước tính, tình trạng tốt" : hp.v>=80 ? "Ước tính, đã hao mòn" : "Ước tính, nên thay pin";
+  $("sCycles").textContent = cycles.toFixed(2);
+
+  const target = cfg.protect ? 85 : 80;
+  if (ch){
+    $("sTo20Lbl").textContent = "Còn lại đến "+target+"%";
+    $("sTo20").textContent = lv>=target ? "Đã vượt "+target+"%" : fmtDur(live.toTarget);
+    $("sTo20Hint").textContent = "Mốc nên rút sạc để giữ tuổi thọ";
+  } else {
+    $("sTo20Lbl").textContent = "Còn lại đến 20%";
+    $("sTo20").textContent = lv<=20 ? "Đã dưới 20%" : fmtDur(live.to20);
+    $("sTo20Hint").textContent = "Theo tốc độ hiện tại";
+  }
+
+  const ut = usedToday();
+  $("sToday").innerHTML = ut+"<em>%</em>";
+  $("sTodayHint").textContent = "Tương đương "+Math.round(cfg.cap*ut/100).toLocaleString("vi-VN")+" mAh";
+
+  const h = new Date().getHours();
+  $("greet").textContent = h<11?"Chào buổi sáng":h<14?"Chào buổi trưa":h<18?"Chào buổi chiều":"Chào buổi tối";
+  $("todayLine").textContent = new Date().toLocaleDateString("vi-VN",{weekday:"long",day:"numeric",month:"long"})
+    +" · Pin "+lv+"% · "+info.t;
+  $("barText").textContent = lv+"% · "+info.t;
+  $("miniFill").style.width = Math.max(6, lv*.86)+"%";
+  $("miniFill").style.background = "var(--"+key+")";
+  $("devLine").textContent = (simulated?"Dữ liệu mô phỏng":"Dữ liệu thật từ thiết bị")
+    +" · độ tin cậy phép đo "+live.conf+"%";
+
+  $("lvNow").textContent  = lv+"%";
+  $("lvRate").textContent = rate!==null ? (rate>0?"+":"−")+Math.abs(rate).toFixed(1)+"%/g" : "…";
+  $("lvLeft").textContent = full ? "Đầy" : fmtShort(live.left);
+  $("lvNext").textContent = live.next!==null ? Math.round(live.next)+"%" : "…";
+  $("lvNext").style.color = live.next!==null && live.next<20 ? "var(--red)" : "";
+
+  updateStale();
+  drawLine(); drawBars();
+}
+
+function paintSpeed(ch, lv, info){
+  const maxW = ch ? Math.max(10, cfg.maxW) : 8;
+  const w = live.watt;
+  const fill = $("speedFill");
+  $("speedIco").querySelector("use").setAttribute("href", ch?"#i-bolt":"#i-trend");
+  $("speedIco").style.color = ch ? "var(--green)" : "var(--accent)";
+  $("speedName").textContent = ch
+    ? (w ? info.t : "Đang nhận diện tốc độ sạc")
+    : (w ? "Mức tiêu thụ hiện tại" : "Đang đo mức tiêu thụ");
+  $("speedW").textContent = w!==null ? (live.rough?"≈ ":"")+w.toFixed(1)+" W" : "-- W";
+  fill.style.width = w!==null ? clamp(w/maxW*100, 3, 100)+"%" : "0%";
+  fill.style.background = ch
+    ? "linear-gradient(90deg,var(--green),var(--green-2))"
+    : (w!==null && w>4 ? "linear-gradient(90deg,var(--red),var(--red-2))"
+                       : "linear-gradient(90deg,var(--accent),var(--accent-2))");
+  if (ch){
+    const a = Math.min(15,maxW), b = Math.min(25,maxW);
+    $("tick1").style.left = (a/maxW*100)+"%"; $("tick2").style.left = (b/maxW*100)+"%";
+    $("sc1").textContent = a+" W"; $("sc2").textContent = b+" W"; $("sc3").textContent = maxW+" W";
+  } else {
+    $("tick1").style.left = "25%"; $("tick2").style.left = "50%";
+    $("sc1").textContent = "2 W"; $("sc2").textContent = "4 W"; $("sc3").textContent = "8 W";
+  }
+}
+
+function paintClock(){
+  if (!ai.at) return;
+  const s = Math.round((Date.now()-ai.at)/1000);
+  const rel = s<60 ? s+" giây trước" : Math.round(s/60)+" phút trước";
+  $("aiStamp").textContent = "Phân tích lúc "+new Date(ai.at).toLocaleTimeString("vi-VN",{hour:"2-digit",minute:"2-digit"})
+    +" · pin "+ai.atLevel+"% · "+rel;
+  if (cfg.auto){
+    const left = Math.max(0, cfg.every*60 - s);
+    $("aiNext").textContent = "Tự làm mới sau "+Math.floor(left/60)+":"+String(left%60).padStart(2,"0");
+  } else $("aiNext").textContent = "Tự làm mới: tắt";
+}
+
+function updateStale(){
+  if (!ai.at) return;
+  const drift = Math.abs(Math.round(live.lv) - ai.atLevel);
+  const flip  = live.ch !== ai.atCharging;
+  ai.stale = drift>=1 || flip;
+  $("aiStale").classList.toggle("hidden", !ai.stale || !cfg.auto);
+  $("aiStale").textContent = flip ? "Trạng thái sạc đã đổi · đang cập nhật"
+    : "Pin đã đổi "+drift+"% · đang cập nhật";
+}
+
+/* =====================================================================
+   6. BIỂU ĐỒ
+===================================================================== */
+function setupSvg(svg){
+  const r = svg.getBoundingClientRect();
+  const w = Math.max(300, Math.round(r.width)), h = Math.max(120, Math.round(r.height));
+  svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
+  svg.setAttribute("preserveAspectRatio","xMidYMid meet");
+  return {w,h};
+}
+function smooth(pts){
+  if (pts.length<2) return "";
+  if (pts.length===2) return `M ${pts[0].x} ${pts[0].y} L ${pts[1].x} ${pts[1].y}`;
+  let d = `M ${pts[0].x} ${pts[0].y}`;
+  for (let i=0;i<pts.length-1;i++){
+    const p0=pts[i-1]||pts[i], p1=pts[i], p2=pts[i+1], p3=pts[i+2]||p2, k=.28;
+    d += ` C ${p1.x+(p2.x-p0.x)*k/2} ${p1.y+(p2.y-p0.y)*k/2}, ${p2.x-(p3.x-p1.x)*k/2} ${p2.y-(p3.y-p1.y)*k/2}, ${p2.x} ${p2.y}`;
+  }
+  return d;
+}
+function bucketize(pts, max){
+  if (pts.length<=max) return pts;
+  const step = Math.ceil(pts.length/max), out=[];
+  for (let i=0;i<pts.length;i+=step){
+    const g = pts.slice(i, i+step);
+    out.push({ t:g[g.length-1].t, l:+(g.reduce((s,p)=>s+p.l,0)/g.length).toFixed(2),
+               c:g.filter(p=>p.c).length > g.length/2 });
+  }
+  if (out[out.length-1].t !== pts[pts.length-1].t) out.push(pts[pts.length-1]);
+  return out;
+}
+let LINE = null;
+function drawLine(){
+  const svg = $("lineChart"); const {w:W,h:H} = setupSvg(svg);
+  const PL=32, PR=10, PT=14, PB=24;
+  const now = Date.now(), from = now - range*60000;
+  let pts = hist.filter(p=>p.t>=from);
+  if (pts.length<2 && hist.length>=2) pts = hist.slice(-2);
+  $("samplesLbl").textContent = hist.length+" mẫu đã lưu";
+  $("chartSub").textContent = range===30?"30 phút gần nhất · cập nhật 3 giây":range===360?"6 giờ gần nhất":"24 giờ gần nhất";
+  if (pts.length<2){
+    svg.innerHTML = `<text x="${W/2}" y="${H/2}" text-anchor="middle" class="axis" style="font-size:12px">Đang thu thập dữ liệu…</text>`;
+    LINE=null; return;
+  }
+  pts = bucketize(pts, 160);
+  const t0 = Math.min(pts[0].t, from), t1 = now;
+  const X = t => PL + (t-t0)/((t1-t0)||1)*(W-PL-PR);
+  const Y = v => PT + (1-v/100)*(H-PT-PB);
+  const P = pts.map(p=>({x:X(p.t), y:Y(p.l), c:p.c, t:p.t, l:p.l}));
+
+  let out = "";
+  [0,25,50,75,100].forEach(v=>{
+    out += `<line class="gridline" x1="${PL}" y1="${Y(v).toFixed(1)}" x2="${W-PR}" y2="${Y(v).toFixed(1)}"/>`;
+    out += `<text class="axis" x="${PL-7}" y="${(Y(v)+3.5).toFixed(1)}" text-anchor="end">${v}</text>`;
+  });
+  const cnow = pts[pts.length-1].c ? "--green" : "--accent";
+  out += `<defs><linearGradient id="lg" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="var(${cnow})" stop-opacity=".32"/>
+    <stop offset="100%" stop-color="var(${cnow})" stop-opacity="0"/></linearGradient></defs>`;
+  const line = smooth(P);
+  out += `<path d="${line} L ${P[P.length-1].x} ${Y(0)} L ${P[0].x} ${Y(0)} Z" fill="url(#lg)"/>`;
+
+  let seg=[P[0]];
+  for (let i=1;i<P.length;i++){
+    if (P[i].c!==P[i-1].c){ out += segPath(seg, P[i-1].c); seg=[P[i-1],P[i]]; }
+    else seg.push(P[i]);
+  }
+  out += segPath(seg, seg[0].c);
+
+  const last = P[P.length-1], cc = last.c?"var(--green)":"var(--accent)";
+  out += `<circle cx="${last.x.toFixed(1)}" cy="${last.y.toFixed(1)}" r="10" fill="${cc}" opacity=".18"/>`;
+  out += `<circle cx="${last.x.toFixed(1)}" cy="${last.y.toFixed(1)}" r="5" fill="${cc}" stroke="var(--surface-solid)" stroke-width="2.5"/>`;
+  for (let i=0;i<=3;i++){
+    const t = t0+(t1-t0)*i/3;
+    out += `<text class="axis" x="${X(t).toFixed(1)}" y="${H-6}" text-anchor="${i===0?'start':i===3?'end':'middle'}">${
+      new Date(t).toLocaleTimeString("vi-VN",{hour:"2-digit",minute:"2-digit"})}</text>`;
+  }
+  out += `<g id="lineCursor" style="display:none"><line y1="${PT}" y2="${H-PB}" stroke="var(--txt-3)" stroke-width="1" stroke-dasharray="3 3"/><circle r="4.5" fill="var(--surface-solid)" stroke="var(--txt)" stroke-width="2"/></g>`;
+  svg.innerHTML = out;
+  LINE = {P, W, H, PL, PR};
+}
+function segPath(seg, charging){
+  if (seg.length<2) return "";
+  return `<path d="${smooth(seg)}" fill="none" stroke="${charging?'var(--green)':'var(--accent)'}" stroke-width="2.8" stroke-linejoin="round" stroke-linecap="round"/>`;
+}
+function drawBars(){
+  const svg = $("barChart"); const {w:W,h:H} = setupSvg(svg);
+  const PL=28, PR=6, PT=12, PB=22;
+  const rates = hourlyRates(), chg = chargeHours();
+  const vals = rates.filter(v=>v!==null);
+  const max = Math.max(5, ...vals)*1.18;
+  const bw = (W-PL-PR)/24, nowH = new Date().getHours(), full = H-PT-PB;
+  let out = "";
+  [0, max/2, max].forEach(v=>{
+    const y = PT+(1-v/max)*full;
+    out += `<line class="gridline" x1="${PL}" y1="${y.toFixed(1)}" x2="${W-PR}" y2="${y.toFixed(1)}"/>`;
+    out += `<text class="axis" x="${PL-6}" y="${(y+3.5).toFixed(1)}" text-anchor="end">${v.toFixed(0)}</text>`;
+  });
+  const maxChg = Math.max(1, ...chg);
+  rates.forEach((v,i)=>{
+    const x = PL+i*bw+bw*.16, w = bw*.68;
+    if (chg[i] > maxChg*.35)
+      out += `<rect x="${x.toFixed(1)}" y="${PT}" width="${w.toFixed(1)}" height="${full}" rx="5" fill="var(--green)" opacity=".13"/>`;
+    if (v===null){
+      out += `<rect x="${x.toFixed(1)}" y="${(PT+full-4)}" width="${w.toFixed(1)}" height="4" rx="2" fill="var(--surface-3)"/>`;
+    } else {
+      const hgt = Math.max(5, v/max*full);
+      const c = i===nowH ? "var(--accent)" : "var(--violet)";
+      out += `<rect x="${x.toFixed(1)}" y="${(PT+full-hgt).toFixed(1)}" width="${w.toFixed(1)}" height="${hgt.toFixed(1)}" rx="${Math.min(5,w/2).toFixed(1)}" fill="${c}" opacity="${i===nowH?1:.8}"/>`;
+    }
+    if (i%4===0) out += `<text class="axis" x="${(x+w/2).toFixed(1)}" y="${H-6}" text-anchor="middle">${i}h</text>`;
+  });
+  svg.innerHTML = out;
+  const learnedH = vals.length;
+  $("learnLbl").textContent = learnedH ? "Đã học "+learnedH+"/24 khung giờ" : "Đang thu thập dữ liệu";
+  $("learnSub").textContent = learnedH>=6 ? "Mô hình đủ dữ liệu để dự báo" : "Mô hình tự học ngay trên máy";
+  $("barBox").dataset.geo = JSON.stringify({PL,bw,W});
+}
+
+(function(){
+  const box=$("lineBox"), tip=$("lineTip");
+  function move(e){
+    if(!LINE) return;
+    const r=box.getBoundingClientRect();
+    const sx=(e.clientX-r.left)*(LINE.W/r.width);
+    let best=LINE.P[0];
+    LINE.P.forEach(p=>{ if(Math.abs(p.x-sx)<Math.abs(best.x-sx)) best=p; });
+    const g=$("lineCursor");
+    if(g){ g.style.display="";
+      g.querySelector("line").setAttribute("x1",best.x); g.querySelector("line").setAttribute("x2",best.x);
+      g.querySelector("circle").setAttribute("cx",best.x); g.querySelector("circle").setAttribute("cy",best.y); }
+    tip.style.opacity=1;
+    tip.style.left=(best.x*(r.width/LINE.W))+"px";
+    tip.style.top=(best.y*(r.height/LINE.H))+"px";
+    tip.textContent = Math.round(best.l)+"% · "+new Date(best.t).toLocaleTimeString("vi-VN",{hour:"2-digit",minute:"2-digit"})+(best.c?" · sạc":"");
+  }
+  function out(){ tip.style.opacity=0; const g=$("lineCursor"); if(g) g.style.display="none"; }
+  box.addEventListener("pointermove",move); box.addEventListener("pointerleave",out);
+})();
+(function(){
+  const box=$("barBox"), tip=$("barTip");
+  box.addEventListener("pointermove",e=>{
+    const geo=box.dataset.geo?JSON.parse(box.dataset.geo):null; if(!geo) return;
+    const r=box.getBoundingClientRect();
+    const sx=(e.clientX-r.left)*(geo.W/r.width);
+    const i=clamp(Math.floor((sx-geo.PL)/geo.bw),0,23);
+    const v=hourlyRates()[i];
+    tip.style.opacity=1;
+    tip.style.left=((geo.PL+i*geo.bw+geo.bw/2)*(r.width/geo.W))+"px";
+    tip.style.top=(r.height*.35)+"px";
+    tip.textContent = i+":00 · "+(v===null?"chưa có dữ liệu":v+"%/giờ");
+  });
+  box.addEventListener("pointerleave",()=>tip.style.opacity=0);
+})();
+let rz; addEventListener("resize",()=>{ clearTimeout(rz); rz=setTimeout(()=>{drawLine();drawBars();},150); });
+
+/* =====================================================================
+   7. GEMINI
+===================================================================== */
+function snapshot(){
+  const lv = Math.round(live.lv);
+  const hp = healthEstimate();
+  const rates = hourlyRates();
+  const known = rates.map((v,i)=>({h:i,v})).filter(o=>o.v!==null);
+  const idle  = known.slice().sort((a,b)=>a.v-b.v).slice(0,4).map(o=>o.h);
+  const heavy = known.slice().sort((a,b)=>b.v-a.v).slice(0,4).map(o=>o.h);
+  const chg = chargeHours();
+  const habitCharge = chg.map((v,i)=>({h:i,v})).filter(o=>o.v>0).sort((a,b)=>b.v-a.v).slice(0,5).map(o=>o.h);
+  const w = live.ch ? ((lv>=82 && live.peak>0) ? live.peak : live.wIn) : null;
+  return {
+    thoiDiem: new Date().toLocaleString("vi-VN"),
+    phanTramPin: lv,
+    dangSac: live.ch,
+    loaiSac: live.ch ? (w ? chargeClass(w, lv, live.rough).t : "chua do duoc") : "khong sac",
+    congSuatVaoMay_W: live.ch ? live.wIn : null,
+    congSuatDinhPhienSac_W: live.ch ? live.peak : null,
+    mucTieuThu_W: live.ch ? null : live.wBatt,
+    uocTinhSoBo: live.rough,
+    tocDoPhanTramMoiGio: live.rate!==null ? +live.rate.toFixed(2) : null,
+    doTinCayDoLuong: live.conf,
+    thoiGianConLai: live.left===null ? null : fmtDur(live.left),
+    thoiGianConLai_giay: live.left,
+    nguonUocTinhThoiGian: live.leftSrc,
+    duBaoPinSau1Gio: live.next!==null ? Math.round(live.next) : null,
+    conBaoLauDenMuc20: live.to20===null ? null : fmtDur(live.to20),
+    conBaoLauDenMucBaoVe: live.toTarget===null ? null : fmtDur(live.toTarget),
+    dungLuongThietKe_mAh: cfg.cap,
+    dungLuongHienTai_mAh: Math.round(cfg.cap*lv/100),
+    dungLuong_Wh: +capacityWh().toFixed(1),
+    tuoiTho_phanTram: hp.v,
+    tuoiTho_laSoDo: hp.real,
+    chuKySacTichLuy: +cycles.toFixed(2),
+    daDungHomNay_phanTram: usedToday(),
+    baoVePin85: cfg.protect,
+    soMauDuLieu: hist.length,
+    tieuHaoTrungBinhTheoGio: rates,
+    gioItDungNhat: idle,
+    gioTieuHaoCaoNhat: heavy,
+    gioNguoiDungHaySac: habitCharge,
+    duLieuMoPhong: simulated
+  };
+}
+
+async function gemini(payload, stream, onChunk){
+  const key = (cfg.key||DEFAULT_KEY).trim();
+  const order = activeModel ? [activeModel, ...MODELS.filter(m=>m!==activeModel)] : MODELS;
+  let lastErr = null;
+  for (const m of order){
+    try{
+      const url = BASE+m+(stream?":streamGenerateContent?alt=sse":":generateContent");
+      const res = await fetch(url,{ method:"POST",
+        headers:{ "Content-Type":"application/json", "x-goog-api-key":key },
+        body: JSON.stringify(payload) });
+      if (!res.ok){
+        const t = await res.text();
+        lastErr = new Error("HTTP "+res.status+": "+t.slice(0,180));
+        if (res.status===404 || /not found|not supported|unsupported/i.test(t)) continue;
+        throw lastErr;
+      }
+      activeModel = m;
+      $("aiModelLbl").textContent = m.replace("models/","")+" · học theo thời gian thực";
+      if (!stream){
+        const j = await res.json();
+        const txt = (j?.candidates?.[0]?.content?.parts||[]).map(p=>p.text||"").join("").trim();
+        if (!txt) throw new Error("Mô hình không trả về nội dung.");
+        return txt;
+      }
+      const rd = res.body.getReader(), dec = new TextDecoder();
+      let buf="", full="";
+      while(true){
+        const {value,done} = await rd.read(); if(done) break;
+        buf += dec.decode(value,{stream:true});
+        const lines = buf.split("\n"); buf = lines.pop();
+        for (const ln of lines){
+          if (!ln.startsWith("data:")) continue;
+          const body = ln.slice(5).trim();
+          if (!body || body==="[DONE]") continue;
+          try{
+            const j = JSON.parse(body);
+            const t = (j?.candidates?.[0]?.content?.parts||[]).map(p=>p.text||"").join("");
+            if (t){ full+=t; onChunk && onChunk(full); }
+          }catch(e){}
+        }
+      }
+      if (!full) throw new Error("Không nhận được nội dung.");
+      return full;
+    }catch(e){ lastErr = e; }
+  }
+  throw lastErr || new Error("Không gọi được mô hình.");
+}
+
+const SCHEMA = { type:"OBJECT", properties:{
+  tomTat:{type:"STRING"}, trangThai:{type:"STRING"}, duBao:{type:"STRING"},
+  diemToiUu:{type:"INTEGER"}, khungGioSac:{type:"STRING"},
+  khuyenNghi:{type:"ARRAY", items:{type:"OBJECT", properties:{
+    tieuDe:{type:"STRING"}, noiDung:{type:"STRING"}, mucDo:{type:"STRING"}},
+    required:["tieuDe","noiDung","mucDo"]}}
+}, required:["tomTat","trangThai","duBao","diemToiUu","khungGioSac","khuyenNghi"]};
+
+const SYS = "Bạn là trợ lý quản lý pin thông minh chạy trực tiếp trên điện thoại, giọng ngắn gọn, thân thiện, chuyên nghiệp như một bản tin tóm tắt. "+
+"Luôn trả lời bằng tiếng Việt tự nhiên, không dùng emoji, không dùng ký hiệu markdown. "+
+"Dữ liệu JSON là ảnh chụp TẠI THỜI ĐIỂM NÀY và sẽ thay đổi liên tục, nên luôn nêu rõ mức pin tham chiếu khi nhắc tới con số. "+
+"QUAN TRỌNG: nếu thoiGianConLai là null hoặc doTinCayDoLuong dưới 35 thì tuyệt đối không bịa ra con số thời gian, chỉ nói là máy đang đo. "+
+"Nếu uocTinhSoBo là true thì nói rõ đây là ước tính nhanh. Khi nói về tốc độ sạc hãy dùng loaiSac và congSuatVaoMay_W, "+
+"và nhớ rằng pin trên 85 phần trăm luôn tự giảm dòng nên công suất thấp đi là bình thường. "+
+"Phân tích bám sát tieuHaoTrungBinhTheoGio, gioNguoiDungHaySac, tocDoPhanTramMoiGio và duBaoPinSau1Gio. "+
+"diemToiUu là số nguyên 0 đến 100. khungGioSac ghi dạng ví dụ 22:00 đến 06:00. Đưa 3 tới 4 khuyến nghị, mucDo chỉ nhận một trong: cao, trung binh, thap. "+
+"Nếu duLieuMoPhong là true, nói rõ đây là dữ liệu mô phỏng.";
+
+let progT=null;
+function progress(on){
+  const p = $("aiProg"); clearInterval(progT);
+  if (on){ let w=6; p.style.opacity=1; p.style.width="6%";
+    progT = setInterval(()=>{ w = Math.min(92, w+Math.random()*9); p.style.width=w+"%"; },300);
+  } else { p.style.width="100%"; setTimeout(()=>{p.style.opacity=0; p.style.width="0"},420); }
+}
+
+async function analyze(extra, silent){
+  if (aiBusy) return;
+  aiBusy = true; progress(true);
+  $("btnAiRefresh").classList.add("busy");
+  const first = !ai.data;
+  if (first || !silent){ $("aiLoading").classList.remove("hidden"); $("aiContent").classList.add("hidden"); }
+  else { $("aiContent").style.opacity=".55"; }
+  const snap = snapshot();
+  try{
+    const txt = await gemini({
+      systemInstruction:{ parts:[{text:SYS}] },
+      contents:[{ role:"user", parts:[{ text:"Dữ liệu pin thời gian thực:\n"+JSON.stringify(snap,null,1)+(extra?"\n\nYêu cầu thêm: "+extra:"") }]}],
+      generationConfig:{ temperature:.6, maxOutputTokens:1500, responseMimeType:"application/json", responseSchema:SCHEMA }
+    }, false);
+    ai.data = JSON.parse(txt);
+    ai.at = Date.now(); ai.atLevel = snap.phanTramPin; ai.atCharging = snap.dangSac;
+    paintAI(ai.data); paintClock(); updateStale();
+  }catch(err){
+    $("aiLoading").classList.add("hidden"); $("aiContent").classList.remove("hidden");
+    if (!ai.data){
+      $("aiSummary").textContent = "Không thể kết nối tới Gemini. "+err.message;
+      $("aiRecs").innerHTML=""; $("aiWindow").textContent="Không có dữ liệu";
+      $("scoreVal").textContent="--"; $("aiForecast").textContent="Kiểm tra API key, hạn mức hoặc kết nối mạng.";
+    } else toast("Không làm mới được phân tích AI");
+  }finally{
+    aiBusy=false; progress(false);
+    $("btnAiRefresh").classList.remove("busy");
+    $("aiContent").style.opacity="";
+  }
+}
+
+function paintAI(d){
+  $("aiLoading").classList.add("hidden");
+  $("aiContent").classList.remove("hidden");
+  $("aiSummary").textContent = d.tomTat||"";
+  $("aiStateTitle").textContent = d.trangThai||"Tình trạng pin";
+  $("aiForecast").textContent = d.duBao||"";
+  const sc = clamp(d.diemToiUu??0,0,100);
+  $("scoreVal").textContent = sc;
+  const C = 2*Math.PI*25;
+  $("scoreRing").setAttribute("stroke-dashoffset",(C*(1-sc/100)).toFixed(1));
+  $("scoreRing").setAttribute("stroke", sc>=80?"var(--green)":sc>=55?"var(--accent)":"var(--amber)");
+  $("aiWindow").textContent = d.khungGioSac||"--";
+  const map = { "cao":["red","Ưu tiên cao","#i-alert"], "trung binh":["amber","Nên làm","#i-info"], "thap":["accent","Giữ đều","#i-shield"] };
+  $("aiRecs").innerHTML = (d.khuyenNghi||[]).map(r=>{
+    const k = map[(r.mucDo||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"")] || map["thap"];
+    return `<div class="rec">
+      <div class="rec-ico" style="background:var(--${k[0]}-soft);color:var(--${k[0]})"><svg width="17" height="17"><use href="${k[2]}"/></svg></div>
+      <div style="flex:1;min-width:0">
+        <b>${esc(r.tieuDe)}<span class="badge" style="background:var(--${k[0]}-soft);color:var(--${k[0]})">${k[1]}</span></b>
+        <p>${esc(r.noiDung)}</p></div></div>`;
+  }).join("");
+}
+
+function maybeAutoAnalyze(){
+  if (!cfg.auto || aiBusy || !ai.at) return;
+  const age = Date.now()-ai.at;
+  if (age < 40000) return;
+  const drift = Math.abs(Math.round(live.lv)-ai.atLevel);
+  const flip  = live.ch !== ai.atCharging;
+  if (flip || drift >= cfg.delta || age >= cfg.every*60000) analyze(null, true);
+}
+
+/* =====================================================================
+   8. HỎI ĐÁP
+===================================================================== */
+function bubble(cls, text){
+  const el = document.createElement("div");
+  el.className = "msg "+cls; el.textContent = text;
+  $("thread").appendChild(el); el.scrollIntoView({behavior:"smooth",block:"nearest"});
+  return el;
+}
+async function ask(q){
+  bubble("me", q);
+  convo.push({role:"user", text:q});
+  const el = bubble("ai","…");
+  try{
+    const contents = [];
+    convo.slice(-6).forEach((m,i,arr)=>{
+      const isLast = i===arr.length-1;
+      contents.push({ role: m.role==="user"?"user":"model",
+        parts:[{ text: isLast && m.role==="user"
+          ? "Ảnh chụp dữ liệu pin ngay lúc này:\n"+JSON.stringify(snapshot())+"\n\nCâu hỏi: "+m.text
+          : m.text }]});
+    });
+    const txt = await gemini({
+      systemInstruction:{ parts:[{ text:"Bạn là trợ lý pin trên điện thoại. Trả lời tiếng Việt, dưới 130 từ, không emoji, không markdown, bám sát dữ liệu JSON kèm theo, luôn nói rõ mức pin tham chiếu, và không bịa số thời gian nếu thoiGianConLai là null." }]},
+      contents,
+      generationConfig:{ temperature:.7, maxOutputTokens:800 }
+    }, true, t => { el.textContent = t; });
+    convo.push({role:"model", text:txt});
+  }catch(err){ el.textContent = "Lỗi: "+err.message; }
+}
+
+/* =====================================================================
+   9. GIAO DIỆN & SỰ KIỆN
+===================================================================== */
+let toastT;
+function toast(msg){
+  const t=$("toast"); t.textContent=msg; t.classList.add("on");
+  clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove("on"),2200);
+}
+function applyCfg(){
+  document.documentElement.dataset.theme = cfg.theme;
+  $("btnTheme").querySelector("use").setAttribute("href", cfg.theme==="dark"?"#i-sun":"#i-moon");
+  document.querySelector('meta[name=theme-color]').content = cfg.theme==="dark"?"#000000":"#eef1f6";
+  $("inCap").value=cfg.cap; $("inCapNow").value=cfg.capNow; $("inVolt").value=cfg.volt;
+  $("inMaxW").value=cfg.maxW; $("inProtect").checked=cfg.protect; $("inAuto").checked=cfg.auto;
+  $("inDelta").value=cfg.delta; $("inEvery").value=cfg.every; $("inKey").value=cfg.key||"";
+}
+$("btnTheme").onclick = ()=>{ cfg.theme = cfg.theme==="dark"?"light":"dark"; save(LS.cfg,cfg); applyCfg(); render(); };
+$("btnSettings").onclick = ()=>{ const c=$("settingsCard"); c.classList.toggle("hidden");
+  if(!c.classList.contains("hidden")) c.scrollIntoView({behavior:"smooth",block:"center"}); };
+$("btnRefresh").onclick = e=>{ const b=e.currentTarget; b.classList.add("busy");
+  setTimeout(()=>b.classList.remove("busy"),700); tick(true); toast("Đã làm mới dữ liệu pin"); };
+$("btnAiRefresh").onclick = ()=>analyze(null,false);
+$("btnAnalyze").onclick = ()=>analyze(null,false);
+$("btnOptimize").onclick = ()=>analyze("Tập trung vào các mẹo kéo dài thời gian dùng pin hôm nay và bảo vệ tuổi thọ pin.",false);
+$("btnAsk").onclick = ()=>{ const v=$("askInput").value.trim(); if(v){ ask(v); $("askInput").value=""; } };
+$("askInput").addEventListener("keydown", e=>{ if(e.key==="Enter") $("btnAsk").click(); });
+$("quickChips").addEventListener("click", e=>{ const b=e.target.closest("button"); if(b) ask(b.textContent); });
+$("rangeSegs").addEventListener("click", e=>{
+  const b=e.target.closest("button"); if(!b) return;
+  [...e.currentTarget.children].forEach(x=>x.classList.remove("on"));
+  b.classList.add("on"); range=+b.dataset.r; drawLine();
+});
+["inCap","inCapNow","inVolt","inMaxW","inDelta","inEvery"].forEach(id=>$(id).addEventListener("change",()=>{
+  cfg.cap = Math.max(500,+$("inCap").value||5000);
+  cfg.capNow = Math.max(0,+$("inCapNow").value||0);
+  cfg.volt = clamp(+$("inVolt").value||3.85,3,5);
+  cfg.maxW = clamp(+$("inMaxW").value||45,5,150);
+  cfg.delta = clamp(+$("inDelta").value||2,1,15);
+  cfg.every = clamp(+$("inEvery").value||6,1,60);
+  save(LS.cfg,cfg); compute(); render(); toast("Đã lưu cài đặt");
+}));
+$("inKey").addEventListener("change",()=>{ cfg.key=$("inKey").value.trim()||DEFAULT_KEY; activeModel=null; save(LS.cfg,cfg); toast("Đã lưu API key"); });
+$("inProtect").onchange = e=>{ cfg.protect=e.target.checked; save(LS.cfg,cfg); compute(); render(); };
+$("inAuto").onchange = e=>{ cfg.auto=e.target.checked; save(LS.cfg,cfg); paintClock(); updateStale();
+  toast(cfg.auto?"AI sẽ tự cập nhật theo pin":"Đã tắt tự cập nhật"); };
+$("btnClear").onclick = ()=>{
+  hist=[]; hourly=blankHours(); cycles=0; rateEMA=null; peakW=0; segStart=Date.now(); stepCache={n:-1,v:1};
+  save(LS.hist,hist); save(LS.hourly,hourly); save(LS.cyc,cycles);
+  tick(true); toast("Đã xóa dữ liệu đã học");
+};
+const heroT = document.querySelector(".hero-title h1");
+addEventListener("scroll", ()=>{
+  const y = Math.min(scrollY,90), k = 1-y/90;
+  heroT.style.transform = `scale(${(0.74+0.26*k).toFixed(3)})`;
+  heroT.style.opacity = String(Math.max(0, k*1.3-.2));
+  $("appbar").classList.toggle("stuck", scrollY>44);
+},{passive:true});
+document.addEventListener("visibilitychange", ()=>{ if(!document.hidden) tick(true); });
+
+applyCfg();
+initBattery().then(()=>setTimeout(()=>analyze(null,false), 1000));
+</script>
+</body>
+</html>
